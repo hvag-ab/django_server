@@ -1,0 +1,106 @@
+version: "3.8"
+
+networks:
+  network:
+    ipam:
+      driver: default
+      config:
+        - subnet: '177.7.0.0/16'
+
+services:
+  web:
+    build:
+      context: ./ #设定上下文根目录，然后以该目录为准指定 Dockerfile
+      # dockerfile: ./nginx/dockerfile_vue # gin的nginx
+      dockerfile: ./nginx/dockerfile_django # django的nginx
+    container_name: hvag-web
+    volumes:
+      - ./nginx/ssl:/usr/share/nginx/ssl # 挂载ssl证书目录
+      - ./nginx/log:/var/log/nginx # 挂载日志
+    restart: always
+    ports:
+      - '8089:8089'
+    depends_on:
+      - server
+    command: [ 'nginx-debug', '-g', 'daemon off;' ]
+    networks:
+      network:
+        ipv4_address: 177.7.0.11
+
+  server:
+    build:
+      context: ./
+      dockerfile: ./server/dockerfile_server
+    container_name: hvag-server
+    restart: always
+    volumes:
+      - ./logs:/app/logs # 挂载ssl证书目录
+    ports:
+      - '8899:8899'
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      network:
+        ipv4_address: 177.7.0.12
+
+  mysql:
+    image: mysql:5.7.22
+    container_name: hvag-mysql
+    restart: always
+    privileged: true
+    ports:
+      - 3307:3306  # host物理直接映射端口为13306
+    environment:
+      - TZ=Asia/Shanghai
+      - MYSQL_ROOT_PASSWORD=hvag # root密码
+      - MYSQL_DATABASE=tutorial # 数据库名称
+      - MYSQL_USER=my # 数据库用户名 root授权的用户
+      - MYSQL_PASSWORD=mypass # 用户密码 root授权的用户密码
+    volumes:
+      - mysql-datavolume:/var/lib/mysql
+      - ./mysql/my.cnf:/etc/mysql/my.cnf # 挂载配置文件
+      - ./mysql/init:/docker-entrypoint-initdb.d/ # 挂载数据初始化sql脚本 
+    networks:
+      network:
+        ipv4_address: 177.7.0.13
+
+  redis:
+    image: redis
+    container_name: redis
+    hostname: redis
+    restart: always
+    ports:
+      - 6379:6379
+    volumes:
+      - ./redis/redis.conf:/etc/redis/redis.conf:rw
+      - redis-datavolume:/data:rw # 通过挂载给redis数据备份
+    command:
+      redis-server /etc/redis/redis.conf --appendonly yes
+    networks:
+      network:
+        ipv4_address: 177.7.0.14
+
+  # mongo:
+  #   image: mongo
+  #   container_name: mongo
+  #   hostname: mongo
+  #   restart: always
+  #   network:
+  #     ipv4_address: 177.7.0.15
+  #   ports:
+  #     - "27017:27017"
+  #   environment:
+  #     TZ: Asia/Shanghai
+  #     MONGO_INITDB_DATABASE: test
+  #     MONGO_INITDB_ROOT_USERNAME: root
+  #     MONGO_INITDB_ROOT_PASSWORD: hvag
+  #   volumes:
+  #     - /etc/localtime:/etc/localtime
+  #     - mongo-datavolume:/data/db
+  #     - ./init/:/docker-entrypoint-initdb.d/
+  #   command: mongod
+
+volumes: # 自定义数据卷，位于宿主机/var/lib/docker/volumes内
+  mysql-datavolume:
+  redis-datavolume:

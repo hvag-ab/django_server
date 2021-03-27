@@ -1,0 +1,19 @@
+# 使用python镜像，可以去dockerhup.com去找适合自己的镜像
+FROM python:3.8
+
+WORKDIR /app
+COPY . .
+COPY ./docker_conf .
+
+#更新apt-get源 使用163的源
+RUN echo "deb http://mirrors.163.com/debian/ jessie main non-free contrib" >/etc/apt/sources.list \
+&& apt-get update \
+&& pip3 install gunicorn \
+&& pip3 install supervisor \
+&& pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
+
+WORKDIR /app/server
+
+RUN chmod +x ./entrypoint.sh
+# 加载完后最后运行
+ENTRYPOINT ["./entrypoint.sh"]

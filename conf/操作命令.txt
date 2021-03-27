@@ -1,0 +1,100 @@
+一 安装
+pip3 install git+https://github.com/Supervisor/supervisor
+
+supervisord
+
+发现 supervisord not found
+运行 find / -name echo_supervisord_conf 查找路径  一般路径在python3 存放的路径里
+
+然后cd 进入这个路径
+
+cp supervisorctl /usr/bin
+cp supervisord /usr/bin
+
+放入bin中 就可以直接使用
+
+
+
+二 运行
+
+cd 进入conf 所在的目录
+sudo supervisord -c conf/supervisord.conf
+
+supervisorctl status
+查看哪些进程在运行 （最左边的列就是进程名字)
+
+
+程序输出到日志文件
+
+cat var/log/supervisord.log
+
+
+操作supervisord是通过supervisorctl
+sudo supervisorctl
+
+
+
+停止某一个进程
+sudo supervisorctl stop 进程名字
+
+启动某个进程
+sudo supervisorctl start 进程名字
+
+重启某个进程
+sudo supervisorctl restart 进程名字
+
+重启所有属于名为groupworker这个分组的进程(start,restart同理)
+sudo supervisorctl stop groupworker:
+
+停止全部进程。注：start、restart、stop都不会载入最新的配置文件。
+sudo supervisorctl stop all
+
+载入最新的配置文件，停止原有进程并按新的配置启动、管理所有进程。
+sudo supervisorctl reload
+
+根据最新的配置文件，启动新配置或有改动的进程，配置没有改动的进程不会受影响而重启。
+sudo supervisorctl update
+
+关闭supervisord
+sudo supervisorctl shutdown
+
+注意：显示用stop停止掉的进程，用reload或者update都不会自动重启。
+
+
+centos7
+systemctl命令启动， 编辑配置文件
+
+vim /usr/lib/systemd/system/supervisord.service
+
+[Unit]
+Description=supervisor
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+ExecStop=/usr/bin/supervisorctl $OPTIONS shutdown
+ExecReload=/usr/bin/supervisorctl $OPTIONS reload
+KillMode=process
+Restart=on-failure
+RestartSec=42s
+
+[Install]
+WantedBy=multi-user.target
+
+重reload unit： systemctl daemon-reload
+保存后使用如下命令操作supervisord
+
+systemctl stop supervisord
+systemctl start supervisord
+systemctl status supervisord
+systemctl reload supervisord
+systemctl restart supervisord
+
+
+# 如果出现celery beat pid占用问题   就用kill-9 全部杀掉
+ps -ef | grep celery
+
+ps auxww|grep "supervisor"|grep -v grep|awk '{print $2}'|xargs kill -9
+ps auxww|grep "celery worker"|grep -v grep|awk '{print $2}'|xargs kill -9
+ps auxww|grep "celery beat"|grep -v grep|awk '{print $2}'|xargs kill -9

@@ -1,0 +1,14 @@
+[program:uwsgi]
+user=root
+command=/Library/Frameworks/Python.framework/Versions/3.8/bin/uwsgi uwsgi.ini
+directory=/Users/lihong/Downloads/django_server/server
+autostart=true
+autorestart=true
+startretries=3
+stdout_logfile=/Users/lihong/Downloads/django_server/logs/uwsgi_out.log
+stdout_logfile_maxbytes=0
+stderr_logfile=/Users/lihong/Downloads/django_server/logs/uwsgi_out.error
+stderr_logfile_maxbytes=0
+killasgroup=true
+stopasgroup=true
+stopsignal=INT

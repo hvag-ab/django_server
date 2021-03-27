@@ -1,0 +1,9 @@
+[program:nginx]
+command = /usr/sbin/nginx -g 'daemon off;'
+startsecs=0
+autostart=true
+autorestart=true
+stdout_logfile=/var/log/nginx_sup.log
+stderr_logfile = /var/log/nginx_err.log
+stopasgroup=true
+killasgroup=true`

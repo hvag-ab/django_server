@@ -1,0 +1,206 @@
+pip install django-filter
+INSTALLED_APPS = [
+    ...
+    'django_filters',
+    ...
+
+]
+
+
+model.py
+
+class User(models.Model):
+    # 模型字段
+    name = models.CharField(max_length=10, verbose_name="姓名")
+    sex = models.BooleanField(default=1, verbose_name="性别")
+    age = models.IntegerField(verbose_name="年龄")
+    phone = models.CharField(max_length=20, null=True, verbose_name="电话")
+    addr = models.CharField(max_length=100,null=True,verbose_name="地址")
+
+    class Meta:
+        db_table = "tb_user"
+        verbose_name = "用户"
+        verbose_name_plural = verbose_name
+
+
+
+# 以name和age过滤
+class UserViewSet(ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserModelSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('name', 'age')
+
+
+ # 这样
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',) #全局默认配置过滤
+    }
+
+否则 需要导入 django_filters.rest_framework.DjangoFilterBackend
+
+
+方式二
+
+import django_filters
+from user.models import User
+
+class UserFilter(django_filters.FilterSet):
+
+    class Meta:
+        model = User
+        fields = ["name", "age"]
+        # fields = {
+            # "name": ['exact','icontains'],
+            # "age": ['exact'],
+        # }
+        fields = ['manufacturer__country'] 外键关联字段
+
+
+class UserViewSet(ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserModelSerializer
+    filter_backends = (DjangoFilterBackend,)
+    # filter_fields = ('name', 'age')
+    filter_class = UserFilter   # 指定过滤器类
+
+
+
+自定义get查询参数的字段
+class UserFilter(django_filters.FilterSet):
+
+    # name_mh = django_filters.CharFilter(field_name='name',lookup_expr='icontains')
+    # age_gt = django_filters.NumberFilter(field_name='age', lookup_expr='gt')
+    # age_lt = django_filters.NumberFilter(field_name='age', lookup_expr='lte', required=True) required参数必须
+    # sort = django_filters.OrderingFilter(fields=('age',)) 排序
+    release_year = django_filters.NumberFilter(field_name='release_date', lookup_expr='year') 类似orm中取年部分
+    release_year__gt = django_filters.NumberFilter(field_name='release_date', lookup_expr='year__gt') 取年部分且大于
+    release_year__lt = django_filters.NumberFilter(field_name='release_date', lookup_expr='year__lt')
+    has_category = django_filters.BooleanFilter(field_name='category', lookup_expr='isnull', exclude=True) 反逻辑
+    price_in=django_filters.NumericRangeFilter(field_name="pid",exclude=True)
+    'price_min': '5', 'price_max': '15' 查询要写成这样
+
+    id__in = NumberInFilter(field_name='id', lookup_expr='in')
+    f = F({'id__in': '1,3'})
+    id__range = NumberRangeFilter(field_name='id', lookup_expr='range')
+f   F({'id__range': '1,3'})
+
+    published = DateTimeFromToRangeFilter(field_name='published')
+    f = F({'published_after': '2016-01-01 8:00', 'published_before': '2016-01-01 10:00'})
+
+    date = DateFromToRangeFilter(field_name='date')
+    # Range: Comments added between 2016-01-01 and 2016-02-01
+    f = F({'date_after': '2016-01-01', 'date_before': '2016-02-01'})
+
+    # Min-Only: Comments added after 2016-01-01
+    f = F({'date_after': '2016-01-01'})
+
+    # Max-Only: Comments added before 2016-02-01
+    f = F({'date_before': '2016-02-01'})
+
+
+    class Meta:
+        model = User
+
+class User(models.Model):
+    username = models.CharField(max_length=255)
+    first_name = SubCharField(max_length=100)
+    last_name = SubSubCharField(max_length=100)
+
+    status = models.IntegerField(choices=STATUS_CHOICES, default=0)
+
+STATUS_CHOICES = (
+    (0, 'Regular'),
+    (1, 'Manager'),
+    (2, 'Admin'),
+)
+
+class F(FilterSet):
+    status = ChoiceFilter(choices=STATUS_CHOICES)
+    class Meta:
+        model = User
+        fields = ['status']
+
+
+
+
+GET /user/users/?sort=age:表示升序
+
+GET /user/users/?sort=-age:表示降序 or sort=[age,-name]
+
+CharFilter         字符串类型
+BooleanFilter      布尔类型
+DateTimeFilter     日期时间类型
+DateFilter         日期类型
+DateRangeFilter    日期范围
+TimeFilter         时间类型
+NumberFilter       数值类型，对应模型中IntegerField, FloatField, DecimalField
+
+__exact 精确等于      like 'aaa'
+ __iexact 精确等于    忽略大小写 ilike 'aaa'
+__contains 包含 like '%aaa%'
+__icontains 包含        忽略大小写 ilike '%aaa%'，
+__gt 大于
+__gte 大于等于
+__lt 小于
+__lte 小于等于
+__in 存在于一个list范围内
+__startswith 以...开头
+__istartswith 以...开头 忽略大小写
+__endswith 以...结尾
+__iendswith 以...结尾，忽略大小写
+__range 在...范围内
+__year 日期字段的年份
+__month 日期字段的月份
+__day 日期字段的日
+__isnull=True/False
+
+
+过滤查询集
+class ArticleFilter(django_filters.FilterSet):
+
+    class Meta:
+        model = Article
+        fields = [...]
+
+    @property
+    def qs(self):
+        parent = super().qs
+        author = getattr(self.request, 'user', None)
+
+        return parent.filter(is_published=True) \
+            | parent.filter(author=author)
+
+
+自定义过滤方法
+
+class F(FilterSet):
+    """Filter for Books by if books are published or not"""
+    published = BooleanFilter(field_name='published_on', method='filter_published')
+
+    def filter_published(self, queryset, name, value):
+        # construct the full lookup expression.
+        lookup = '__'.join([name, 'isnull'])
+        return queryset.filter(**{lookup: False})
+
+        # alternatively, you could opt to hardcode the lookup. e.g.,
+        # return queryset.filter(published_on__isnull=False)
+
+    class Meta:
+        model = Book
+        fields = ['published']
+
+
+distinct
+A boolean that specifies whether the Filter will use distinct on the queryset. This option can be used to eliminate duplicate results when using filters that span relationships. Defaults to False.
+
+exclude
+A boolean that specifies whether the Filter should use filter or exclude on the queryset. Defaults to False.
+
+required
+A boolean that specifies whether the Filter is required or not. Defaults to False.
+
+
+  # 非restful 情况下
+f = ProductFilter(request.GET, queryset=Product.objects.all())
+return render(request, 'my_app/template.html', {'filter': f})

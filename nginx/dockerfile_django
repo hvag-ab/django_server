@@ -1,0 +1,5 @@
+FROM nginx:1.15.5-alpine
+
+COPY nginx/conf.d/gunicorn_nginx.conf /etc/nginx/conf.d/my.conf
+COPY static /var/www/html/static
+COPY media /var/www/html/media

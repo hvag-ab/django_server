@@ -1,0 +1,2 @@
+2021/01/30 03:18:33 [error] 7#7: *1 connect() failed (111: Connection refused) while connecting to upstream, client: 177.7.0.1, server: localhost, request: "GET /api/v4/snippets/test_version HTTP/1.1", upstream: "http://177.7.0.12:8899/api/v4/snippets/test_version", host: "127.0.0.1:8089"
+2021/01/30 03:18:36 [error] 7#7: *1 connect() failed (111: Connection refused) while connecting to upstream, client: 177.7.0.1, server: localhost, request: "GET /api/v4/snippets/test_version HTTP/1.1", upstream: "http://177.7.0.12:8899/api/v4/snippets/test_version", host: "127.0.0.1:8089"

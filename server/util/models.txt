@@ -1,0 +1,153 @@
+from django.db import models
+from django.db.models import CheckConstraint, UniqueConstraint
+from django.urls import reverse
+import django.utils.timezone as timezone # 时间都用django自带的时间
+from django.db.models import Q
+
+
+##外键之间关联 有时候会出现各个模块之间相互引用导致导入错误，那么可以用 'app.model' 来直接使用 不导入
+## 例如 authors = models.OneToOneField('app.Author', related_name='books', db_constraint=False) 这里的Author模型是app模块中的模型
+
+class BaseModel(models.Model):
+    is_delete = models.BooleanField(default=False)
+    created_time = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        # 基表，为抽象表，是专门用来被继承，提供公有字段的，自身不会完成数据库迁移
+        abstract = True
+
+
+class Book(BaseModel):
+    name = models.CharField(max_length=64)
+    date = models.DateTime()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    publish = models.ForeignKey(to='Publish', related_name='books', db_constraint=False, on_delete=models.DO_NOTHING,
+                                null=True,db_column='publish')
+    # 断开出版社与book之间的表关联，取消两表的级联，将默认值设置为空，外键反向查询的字段名设置为book
+
+    authors = models.ManyToManyField(to='Author', related_name='books', db_constraint=False,through='Score')#在多对多的时候 through指定第三张表 否则django会自动创建
+
+
+    def __str__(self):
+        return self.name
+
+
+    class Meta:
+
+        db_table = "book" #在数据库中的表名
+        ordering = ('id',) #按照某些字段排序
+
+        #permissions = (('定义好的权限', '权限说明'),)
+        #给数据库的表设置额外的权限
+
+        managed = False  # 如果为false django只能查询这个表 不能增删改
+
+        unique_together = ('address', 'note')
+        #联合唯一键，约束
+
+        # app_label = 'xxx'
+        #定义模型类属于哪一个应用
+
+        # db_tablespace = 'xx'
+        #定义数据库表空间的名字
+
+        constraints = [
+            CheckConstraint(
+                check=~Q(price="") & ~Q(name__contains=" "),
+                name="system_not_blank")
+        ],
+        UniqueConstraint(fields=['name', 'date'], name='unique_booking'),### 联合唯一约束
+        UniqueConstraint(fields=['name'], condition=Q(name='DRAFT'), name='unique_draft_user') ## 条件约束
+
+
+
+class Score(models.Model):
+    book=models.ForeignKey('Book')
+    author=models.ForeignKey('Author')
+    socre=models.IntegerField()
+
+
+class Publish(BaseModel):
+    name = models.CharField(max_length=64)
+    address = models.CharField(max_length=64)
+
+     def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):# 模型保存是 执行其他逻辑
+
+        if self.pk:
+            Book.objects.create(publish=self)
+        # do something
+
+        super().save(force_insert, force_update, using,
+             update_fields)
+
+    def delete(self, using=None, keep_parents=False):
+
+        #do something
+
+        return super().delete(using,keep_parents) #模型执行删除时 执行其他逻辑
+
+
+class Author(BaseModel):
+    name = models.CharField(max_length=64)
+
+
+class AuthorDetail(BaseModel):
+    mobile = models.CharField(max_length=64)
+    author = models.OneToOneField(to=Author, related_name='detail', db_constraint=False, on_delete=models.CASCADE)
+    # 断开Author、AuthorDetial表与表的关联,将两张表设置为级联，并将外键反向查询的字段名设置为detail
+
+    # tn = models.ManyToManyField(Technique)  # 多对多
+    # parent = models.ForeignKey('self', blank=True, null=True, related_name='children', on_delete=models.SET_NULL)
+
+
+
+
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+
+# 信号和save重写相似
+@receiver(post_save, sender=Publish)
+def create_user_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Book.objects.get_or_create(publish=instance)#
+
+
+"""
+Django项目中经常使用到信号，但使用信号的代码更难阅读和维护。在保持不同模型数据同步更新时，到底使用信号signals，还是重写save方法更好？作者也给出了建议：
+
+当你的字段依赖于一个你可以控制的模型，推荐使用重写 .save
+如果你的字段依赖于一个你不能控制第三方app的模型，使用信号。
+
+
+说明
+to_field 表示指定关联另一个表的哪一个字段 被关联的字段必须是唯一建 默认是关联到主键上
+db_constraint  表示是否在数据库层面建立外键 false表示不在数据库层面建立 这种可以在已有的两表中建立外键关系，If this is set to False, accessing a related object that doesn't exist will raise its DoesNotExist exception.
+related_name 关联名 表示反相查询时用的名称
+db_column='hvag' 指定这个字段在表中对应哪个字段,如果不指定 外键默认变成hvag_id
+特别说明
+
+一旦作为外键的字段例如hvag 那么在数据库中就会默认变成 hvag_id _id是django添加的 用来保存被关联的表的字段对应的值 这点很容易在已有表中出现错误，
+因为这个问题 导致在已有表中不能建立django的外键关系 db_column需要这个参数来指定为需要作为外键的名字
+
+on_delete在外建中必须设置，表示级联关系，在Django1.x下系统默认提供(值为models.CASCADE)，Django2.x下必须手动明确：
+
+CASCADE：默认值，级联
+ 例子：作者被删，作者详情一定没有
+ DO_NOTHING：外键不会被级联，假设A表依赖B表，B记录删除，A表的外键字段不做任何处理
+
+例子：作者被删了，作者的书还存在，书还是该作者写的；出版社没了，出版社出版的书还在
+
+SET_DEFAULT：假设A表依赖B表，B记录删除，A表的外键字段重置为default属性设置的值，所以必须配合default属性使用。
+
+例子：部门没有了，部门员工里的部门字段改为未分组部门的id
+
+SET_NULL使用的时候需要blank=True, null=True；假设A表依赖B表，B记录删除，A表的外键字段重置为NULL，所以必须配合NULL=True使用。
+ 例子：部门没有了，部门员工里的部门字段改为未分组部门的id字段为NULL
+
+注：多对多字段不能设置on_delete级联关系，如果要处理级联关系，需要手动明确关系，处理表关系中的多个外键
+
+如果使用两个表之间存在关联,首先db_constraint=False 把关联切断,但保留链表查询的功能,其次要设置null=True, blank=True,注意on_delete=models.SET_NULL 一定要置空,这样删了不会影响其他关联的表
+
+
+"""

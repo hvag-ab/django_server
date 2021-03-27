@@ -1,0 +1,363 @@
+from django.contrib.auth.models import User
+from django.http import JsonResponse, HttpResponse
+from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import generics,filters
+from rest_framework import mixins
+from rest_framework import permissions
+from rest_framework import status
+from rest_framework import viewsets
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.authtoken.models import Token
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.decorators import api_view
+from rest_framework.parsers import JSONParser
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.parsers import JSONParser,FormParser
+from blog.models import Post, Category, Tag, Snippet
+from restful.filters import PostFilter
+from restful.permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly,SPremission
+from restful.serializers import PostSerializer, CategorySerializer, UserSerializer, TagSerializer, SnippetSerializer
+from restful.paginations import MyPageNumberPagination
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.authentication import BaseAuthentication,TokenAuthentication
+from rest_framework import exceptions
+from restful.throttle import UserThrottle
+from restful.Authentication import Authentication
+from my_error import ParseError
+
+
+class NonSerialize(APIView):#因序列化后响应速度响应会变慢所以在一些对响应速度要求很高的请求上不使用序列化
+    def get(self, request):
+        data = User.objects.values('id', 'username', 'email')
+        return Response(data)
+
+
+
+class SnippetList(APIView):
+    """
+    List all snippets, or create a new snippet.
+    """
+    def get(self, request, *args, **kwargs):
+        data = request.query_params
+        snippets = Snippet.objects.all()
+        serializer = SnippetSerializer(snippets, many=True, context={'request':request})
+        return Response(serializer.data)
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        serializer = SnippetSerializer(data=request.data, context={'request':request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            print(serializer.error_messages)
+            print(serializer.errors)#打印验证错误
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# 单条记录 操作   path('snippets/<int:pk>/', views.SnippetDetail.as_view()),
+class SnippetDetail(APIView):
+    """
+    Retrieve, update or delete a snippet instance.
+    """
+    def get_object(self, pk):
+        try:
+            return Snippet.objects.get(pk=pk)
+        except Snippet.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+    def get(self, request, pk, format=None):
+        snippet = self.get_object(pk)
+        serializer = SnippetSerializer(snippet)
+        return Response(serializer.data)
+
+    def put(self, request, pk, format=None):
+        snippet = self.get_object(pk)
+        serializer = SnippetSerializer(snippet, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk, format=None):
+        snippet = self.get_object(pk)
+        snippet.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class SnippetListMixin(generics.ListCreateAPIView):#你也可以单独使用ListAPIView，CreateAPIView
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetSerializer
+    pagination_class = MyPageNumberPagination # 分页器
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+
+class SnippetDetailMixin(generics.RetrieveUpdateDestroyAPIView):#可以单独使用DestroyAPIView，RetrieveAPIView
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetSerializer
+    lookup_url_kwarg = 'pk'
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(self, request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(self, request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(self, request, *args, **kwargs)
+
+
+
+class ListView(generics.ListAPIView):#你也可以单独使用ListAPIView，CreateAPIView
+    queryset = Snippet.objects.select_related('owner').all()#通过调试可以看出 避免n+1
+    # queryset = Snippet.objects.all()
+    serializer_class = SnippetQuerySerializer
+    pagination_class = MyPageNumberPagination # 分页器
+
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
+    filterset_class = SnippetFilter  # 自定义过滤
+
+    # filter_backends = (filters.SearchFilter, filters.OrderingFilter,)#rest_framework自带的过滤但是只能是在url参数 如 ？search=xxx 只能是search
+    # search_fields = ('code',)  ##
+    # search_fields = ('=code',)# '='精确搜索
+    # 排序字段
+    ordering_fields = ('created', 'id')  # 接口：/api/cars/?ordering=-created | /api/cars/?ordering=-id | ?ordering=id,created
+
+    def list(self, request, *args, **kwargs):
+        response = super().list(request, *args, **kwargs)
+        return Response(response.data)
+
+
+class QueryObjectView(generics.GenericAPIView):
+
+    queryset = Snippet.objects.all()
+
+    serializer_params_class = SnippetUpdateSerializer
+    serializer_class = SnippetSerializer
+
+
+    def get_queryset(self):
+        data = self.request.query_params or self.request.data
+        return Snippet.objects.filter(**data)
+
+
+
+    def get(self, request, *args, **kwargs):## 两次序列化 影响性能
+        params = self.request.query_params
+
+        serializer = self.serializer_params_class(data=params,context={'request',request})# 这是为了序列化的时候 可以使用request参数 否则不能使用 get_serializer已经添加
+        serializer.is_valid(raise_exception=True)
+
+        snippets = get_object_or_404(self.queryset, **serializer.data)
+        print(snippets)
+        ser_obj = self.get_serializer(snippets)
+        return Response(ser_obj.data)
+        # return SResponse(model_to_dict(snippets,fields=None, exclude=None))#需要和排除的字段
+
+
+class Detail(generics.RetrieveAPIView):
+
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    # permission_classes = (DjObjectPermissions,)  # 添加对象权限限制
+    lookup_field = 'pk'
+    _ignore_model_permissions = True  # 添加对象层级的权限一定要添加这个属性 否则会运行模型层级的权限，导致失败，缺陷就是没有模型层级的权限
+
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
+    filterset_class = SnippetFilter  # 自定义过滤
+    ordering_fields = ('created', 'id')
+
+    def get_object(self):
+        obj = get_object_or_404(self.get_queryset())
+        self.check_object_permissions(self.request, obj)  # 显示调用对象级权限检查对象
+        return obj
+
+    # def permission_denied(self, request, message=None):
+    #     super().permission_denied(request, message='你没有这个权限访问')
+
+
+class UpdateView(generics.GenericAPIView):
+
+    queryset = Snippet.objects.all()
+    # serializer_class = SnippetSerializer
+    serializer_class = SnippetUpdateSerializer
+    is_uri = True
+    lookup_field = 'pk'
+
+    def post(self, request, *args, **kwargs):
+        if not self.is_uri:
+            self.kwargs[self.lookup_field] = request.data.get(self.lookup_field)
+        instance = self.get_object()
+        #partial 参数控制 如果你的参数定义了required 那么 False 就是必须都填  True 填写一部分都行
+        serializer = self.get_serializer(instance, data=request.data, partial=True)#传入instance就表示使用update否则create
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+class DeleteView(generics.GenericAPIView):
+
+    queryset = Snippet.objects.all()
+    is_uri = True
+    lookup_field = 'pk'
+
+    def post(self, request, *args, **kwargs):
+        if not self.is_uri:
+            self.kwargs[self.lookup_field] = request.data.get(self.lookup_field)
+        instance = self.get_object()
+        instance.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
+##### 页面缓存
+
+from django.utils.decorators import method_decorator #这装饰器是 添加django的方法的 就是把函数装饰器转化为方法装饰器 比如缓存方法 login_required 等
+from django.views.decorators.cache import cache_page
+
+
+class PostView(APIView):
+
+    # @method_decorator(cache_page(60)) #缓存所有方法
+    # def dispatch(self, *args, **kwargs):
+    #     return super().dispatch(*args, **kwargs)
+
+    # Cache page for the requested url  缓存get查询方法
+    @method_decorator(cache_page(60 * 60 * 2))
+    def get(self, request, format=None):
+        content = {
+            'title': 'Post title',
+            'body': 'Post content'
+        }
+        return Response(content)
+
+
+#### http缓存
+
+from django.views.decorators.http import condition
+import hashlib
+from datetime import datetime
+from .models import Entry
+"""
+Last-Modified和Etags如何帮助提高性能?
+　　聪明的开发者会把Last-Modified 和ETags请求的http报头一起使用，这样可利用客户端（例如浏览器）的缓存。因为服务器首先产生 Last-Modified/Etag标记，服务器可在稍后使用它来判断页面是否已经被修改。本质上，客户端通过将该记号传回服务器要求服务器验证其（客户端）缓存。
+过程如下:
+
+客户端请求一个页面（A）。
+服务器返回页面A，并在给A加上一个Last-Modified/ETag。
+客户端展现该页面，并将页面连同Last-Modified/ETag一起缓存。
+客户再次请求页面A，并将上次请求时服务器返回的Last-Modified/ETag一起传递给服务器。
+服务器检查该Last-Modified或ETag，并判断出该页面自上次客户端请求之后还未被修改，直接返回响应304和一个空的响应体。
+"""
+
+
+def my_etag(request, *args, **kwargs):# 这是通过 浏览器请求头中 etag值 来判断请求是否发生了变化
+    print(request.GET.dict())
+    return hashlib.md5(':'.join(request.GET.dict().values()).encode('utf-8')).hexdigest()
+
+
+def my_last_modified(request, blog_id, *args, **kwargs):# 这是通过 浏览器请求头中 Last-Modified 时间 来判断请求是否发生了变化 更新
+    return Entry.objects.filter(blog=blog_id).latest("published").published
+
+
+class ConditionApiView(APIView):#可以一起用 也可以只用一个 具体看实现逻辑
+    @method_decorator(condition(etag_func=my_etag, last_modified_func=my_last_modified))
+    def get(self, request, blog_id,):
+        e = Entry.objects.filter(blog=blog_id).values()
+        return Response(e)
+        # return Response({'data': 'I have both Last-Modified and Etag!'})
+
+
+# #############################################################################################################
+"""
+viewsets 类 把list和detail 类都结合起来 形成一个视图集 然后需要重构urls路由创建 routers重构路由 自动化各种http方法例如get post对应的 例如不用routers
+snippet_list = SnippetViewSet.as_view({
+    'get': 'list',
+    'post': 'create'
+})
+snippet_detail = SnippetViewSet.as_view({
+    'get': 'retrieve',
+    'put': 'update',
+    'patch': 'partial_update',
+    'delete': 'destroy'
+})
+"""
+
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    此视图自动提供`list`和`detail`操作。
+    （这里的文字会显示在 API 页面上）
+    """
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+class PostViewSet(viewsets.ModelViewSet):
+    # 在 rest_framework.pagination 模块中有多种 Pagination，可以根据具体需求选择
+    # [PageNumberPagination, CursorPagination, DjangoPaginator, LimitOffsetPagination]
+    # 也可以是自定义的 Pagination 类
+    pagination_class = MyPageNumberPagination
+
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly)
+    filter_backends = (DjangoFilterBackend,)
+    # 指定筛选参数
+    filter_fields = ['title']
+    # 指定筛选类
+    filter_class = PostFilter
+    authentication_classes = []
+    parser_classes = [JSONParser, FormParser, ]
+    # JSONParser：表示只能解析content-type:application/json的头
+    # FormParser:表示只能解析content-type:application/x-www-form-urlencoded的头
+
+    def get_object(self):
+        obj = get_object_or_404(self.get_queryset())
+        self.check_object_permissions(self.request, obj)  # 显示调用对象级权限检查对象
+        return obj
+
+    def get_queryset(self):
+        return super().get_queryset()
+
+    def get_serializer_class(self):#不同的请求用不同的serializer
+        if self.request.method in permissions.SAFE_METHODS:
+            return PostSerializer
+        else:
+            return PostSerializer
+
+    def get_permissions(self):#根据不同的请求用不同的权限
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.IsAdminUser()]
+        else:
+            return [permission() for permission in self.permission_classes]
+
+    # 保存方法重写时候重写 perform_create 即可
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)#更新author字段
+
+    # 更新方法重写时候重写 perform_update 即可
+    def perform_update(self, serializer):
+
+        serializer.save()
+
+    def destroy(self, request, *args, **kwargs):#删除方法重写
+        post = self.get_object()
+        if post is not None:
+            post.delete()
+            return Response({"message": "delete succeed", "code": "200"}, status=status.HTTP_200_OK)
+        return super(PostViewSet, self).destroy(self, request, *args, **kwargs)
+
+
+
+
+
+
