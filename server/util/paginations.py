@@ -1,8 +1,8 @@
 from rest_framework.pagination import PageNumberPagination,LimitOffsetPagination,CursorPagination
 from rest_framework.response import Response
 
-
-class MyPageNumberPagination(PageNumberPagination):
+#视图 pagination_class = CusPageNumberPagination # 分页器
+class CusPageNumberPagination(PageNumberPagination):
     #默认每页显示多少个
     page_size = 3
     #默认每页显示3个，可以通过传入pager1/?page=2&size=4,改变默认每页显示的个数 这是用户自定义页面数 用户自定义了 默认的就没用了

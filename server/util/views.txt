@@ -358,6 +358,51 @@ class PostViewSet(viewsets.ModelViewSet):
 
 
 
+# Create your views here.
+class UploadMultiImgView(generics.CreateAPIView):
+    queryset = MyFile.objects.all()
+    serializer_class = ListImgSerializer
+    parser_classes = (
+    MultiPartParser, FileUploadParser,)  # 解析file 使request.data包含file信息解析file_obj = request.data['file']
 
 
+class UploadFileView(generics.CreateAPIView):
+    queryset = MyFile.objects.all()
+    serializer_class = MyFileSerializer
+    parser_classes = (
+    MultiPartParser, FileUploadParser,)  # 解析file 使request.data包含file信息解析file_obj = request.data['file']
 
+
+class BatchUpload(generics.CreateAPIView):
+    """
+    批量上传模型记录
+    """
+    queryset = Snippet.objects.all()
+    serializer_class = SourceSerializer
+    parser_classes = (
+    MultiPartParser, FileUploadParser,)  # 解析file 使request.data包含file信息解析file_obj = request.data['file']
+
+
+class DownloadModel(APIView):
+    header = {'标题': 'title', '内容': 'code', 'linenos': 'linenos', '用户': 'username'}
+
+    def get(self, request, *args, **kwargs):
+        return ModelToExcel(headers=self.header, is_header=True).export_as_excel
+
+
+class Download(generics.ListAPIView):
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetDownSerializer
+    header = {'标题': 'title', '内容': 'code', 'linenos': 'linenos', '用户': 'username'}
+
+    def get_queryset(self):
+        return self.queryset[:10]
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        data = serializer.data
+        if not data:
+            return Response({'msg': '你查询的数据不存在'})
+        else:
+            return ModelToExcel(headers=self.header, data=data).export_as_excel

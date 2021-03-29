@@ -9,22 +9,28 @@ INSTALLED_APPS = [
 
 model.py
 
-class User(models.Model):
+class MyUser(models.Model):
+    STATUS_CHOICES = (
+        (0, 'Regular'),
+        (1, 'Manager'),
+        (2, 'Admin'),
+    )
     # 模型字段
     name = models.CharField(max_length=10, verbose_name="姓名")
     sex = models.BooleanField(default=1, verbose_name="性别")
     age = models.IntegerField(verbose_name="年龄")
     phone = models.CharField(max_length=20, null=True, verbose_name="电话")
     addr = models.CharField(max_length=100,null=True,verbose_name="地址")
+    user = models.ForeignKey(to='User', related_name='myuser', on_delete=models.DO_NOTHING)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=0)
 
     class Meta:
         db_table = "tb_user"
-        verbose_name = "用户"
-        verbose_name_plural = verbose_name
 
 
 
-# 以name和age过滤
+
+# 以name和age过滤 rest自带
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserModelSerializer
@@ -44,17 +50,6 @@ REST_FRAMEWORK = {
 
 import django_filters
 from user.models import User
-
-class UserFilter(django_filters.FilterSet):
-
-    class Meta:
-        model = User
-        fields = ["name", "age"]
-        # fields = {
-            # "name": ['exact','icontains'],
-            # "age": ['exact'],
-        # }
-        fields = ['manufacturer__country'] 外键关联字段
 
 
 class UserViewSet(ModelViewSet):
@@ -98,29 +93,21 @@ f   F({'id__range': '1,3'})
     # Max-Only: Comments added before 2016-02-01
     f = F({'date_before': '2016-02-01'})
 
+    # 外键
+    last_name =  django_filters.CharFilter(field_name='user__lastname',lookup_expr='icontains')
+
 
     class Meta:
         model = User
-
-class User(models.Model):
-    username = models.CharField(max_length=255)
-    first_name = SubCharField(max_length=100)
-    last_name = SubSubCharField(max_length=100)
-
-    status = models.IntegerField(choices=STATUS_CHOICES, default=0)
-
-STATUS_CHOICES = (
-    (0, 'Regular'),
-    (1, 'Manager'),
-    (2, 'Admin'),
-)
-
-class F(FilterSet):
-    status = ChoiceFilter(choices=STATUS_CHOICES)
-    class Meta:
-        model = User
-        fields = ['status']
-
+        # 一定要写你用了哪些字段来筛选 否则报错
+        fields = ['name','age','user__lastname']
+        """
+        也可以简写
+        # fields = {
+            # "name": ['exact','icontains'],
+            # "age": ['exact'],
+        # }
+        """
 
 
 

@@ -66,10 +66,22 @@ class ExcelToModel:
         return models
 
 
+
 class ModelToExcel:
 
     def __init__(self, headers: dict, data: [dict] = None, name: str = 'Sheet1', is_header: bool = False,
-                 dict_data: dict = None, ext: str = '.xlsx', title: str = None, merge: list = None):
+                 dict_data: dict = None, ext: str = '.xlsx', title: str = None, merge: list = None, beauty:bool=True, cell_width=15):
+        """
+        :param headers: excel表格头 {'定义的名称'：’字段名',....}
+        :param data: 表格数据 [{'字段名':'字段的值’}]
+        :param name: 表格的sheet名
+        :param is_header: 是否值导出标题头
+        :param dict_data: 映射字典 例如 {'color':1} ----{1:'red'} ----> {'color':'red'}
+        :param ext: 表格格式后缀 .xlsx or  .xls
+        :param title: 表格标题名称
+        :param merge: 合并单元格cell  例如['A1:A3'] 合并
+        :param beauty: 是否美化格式 当数据量大的时候很费时间
+        """
         self.data = data
         self.headers = headers
         self.name = name
@@ -78,6 +90,8 @@ class ModelToExcel:
         self.ext = ext
         self.title = title
         self.merge = merge
+        self.beauty = beauty
+        self.cell_width = cell_width
 
     @property
     def export_as_excel(self):
@@ -110,7 +124,7 @@ class ModelToExcel:
         for ci in range(len(field_names)):
             ws.cell(row=headline, column=ci + 1).fill = orange_fill
             col_letter = get_column_letter(ci + 1)
-            ws.column_dimensions[col_letter].width = 15
+            ws.column_dimensions[col_letter].width = self.cell_width
 
         if not self.is_header:
             for obj in self.data:
@@ -123,7 +137,8 @@ class ModelToExcel:
             if self.merge:
                 for mer in self.merge:
                     ws.merge_cells(mer)
-            
+
+        if self.beauty:
             # 数据量大了后 每一cell去遍历 很花时间  注意取舍
             row_max = ws.max_row
             con_max = ws.max_column
@@ -134,12 +149,10 @@ class ModelToExcel:
                                                                bottom=Side(border_style='thin', color=colors.BLACK),
                                                                left=Side(border_style='thin', color=colors.BLACK),
                                                                right=Side(border_style='thin', color=colors.BLACK))
-
         wb.save(response)
         wb.close()
         return response
-    
-    
+
     def convert(self, field):
 
         try:

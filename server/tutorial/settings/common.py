@@ -311,7 +311,7 @@ LOGGING = {
 
 
 REST_FRAMEWORK = {
-     'EXCEPTION_HANDLER': 'util.custom_exception.exception_handler',
+     'EXCEPTION_HANDLER': 'util.exception.exception_handler',
 }
 
 
