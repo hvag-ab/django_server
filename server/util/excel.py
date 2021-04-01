@@ -9,61 +9,35 @@ from openpyxl.styles import Side, Border, colors, PatternFill, Alignment, Font
 
 class ExcelToModel:
 
-    def __init__(self, file, header, model, relation_model, model_serializer, dict_data=None):
+    def __init__(self, file, header, serializer, first_row=1, sheet_no=0, request=None):
         self.wb = openpyxl.load_workbook(file)
         sheet_names = self.wb.sheetnames
-        # getting a particular sheet
-        self.worksheet = self.wb[sheet_names[0]]
+        self.worksheet = self.wb[sheet_names[sheet_no]]
         # 获取总行数
-        # self.nrows = self.table.max_row
-        columns = self.table.max_column
-        excel_header = [self.worksheet.cell(row=1, column=i).value for i in range(1,columns+1)]
+        # self.nrows = self.worksheet.max_row
+        columns = self.worksheet.max_column
+        excel_header = [self.worksheet.cell(row=first_row, column=i).value for i in range(1, columns + 1)]
         self.header = [header[h] for h in excel_header]
-
-        self.model = model
-        self.model_serializer = model_serializer
-        self.relation_model = relation_model
-        self.dict_data = dict_data
-
-        # model = Snippet
-        # header = {'标题': 'title', '内容': 'code', 'linenos': 'linenos', '用户': 'username'}
-        # relation_model = {User: ('username', 'owner')}  # 第一项是关联模型的用户填的字段  第二项是模型的关联字段 第三项是 模型关联另一个模型的字段
-        # model_serializer = SnippetUploadSerializer
+        self.first_row = first_row
+        self.serializer = serializer
+        self.request = request
 
     @property
-    def excel_import_model(self):
-        models = []
-        relation_record = {}
-
-        for row in self.worksheet.iter_rows(min_row=2):
+    def excel2array(self):
+        datas = []
+        for row in self.worksheet.iter_rows(min_row=self.first_row + 1):
             row_data = [cell.value for cell in row]
             data = dict(zip(self.header, row_data))
+            serialize = self.serializer(data=data,context={'request':self.request})
+            if serialize.is_valid():
+                datas.append(serialize.data)
+            else:
+                return serialize.errors
 
-            for model, tup in self.relation_model.items():
-                kf, kfid = tup
-                if kf in data.keys():
-                    obj = get_object_or_404(model, **{kf: data[kf]})
-                    data.pop(kf)
-                    relation_record[kfid] = obj
-
-            if self.dict_data:
-                for k, v in data.items():
-                    try:
-                        data[k] = self.dict_data[v]
-                    except:
-                        pass
-
-                # 验证  验证字段不能是关联模型 否则容易报错 切记 如果含有 应该exclude排除
-            ser = self.model_serializer(data=data)
-            ser.is_valid(raise_exception=True)
-
-            model_data = ser.data
-            model_data.update(relation_record)
-
-            models.append(self.model(**model_data))
         self.wb.close()
 
-        return models
+        return datas
+
 
 
 
