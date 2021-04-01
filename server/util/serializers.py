@@ -187,14 +187,17 @@ class ListImgSerializer(serializers.Serializer):
 #         if file.size > 25 * 1024 * 1024:
 #             raise serializers.ValidationError('上传文件过大')
 #
-#         model = Snippet
+#         serializer= SnippetSerializer
 #         header = {'标题': 'title', '内容': 'code', 'linenos': 'linenos', '用户': 'username'}
-#         relation_model = {User: ('username', 'owner')}  # 第一项是关联模型的用户填的字段  第二项是模型的关联字段 第三项是 模型关联另一个模型的字段
+
 #         model_serializer = SnippetUploadSerializer
 #
-#         models = ExcelToModel(file=file, header=header, model=model, relation_model=relation_model,
-#                               model_serializer=model_serializer, dict_data=True).excel_import_model
+#         datas = ExcelToModel(file=file, header=header, serializer=serializer,
+#                               dict_data=True).excel_import_model
 #
+#         for data in datas:
+#              print(type(data)) # dict
+#              .... do something
 #         Snippet.objects.bulk_create(models)
 #
 #         ok = True
