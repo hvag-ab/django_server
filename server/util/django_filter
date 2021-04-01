@@ -166,6 +166,7 @@ class F(FilterSet):
     published = BooleanFilter(field_name='published_on', method='filter_published')
 
     def filter_published(self, queryset, name, value):
+        # name 参数 是上面定义的 field_name的值 value是你传入的值 例如 published = 1   name="published_on"  value =1
         # construct the full lookup expression.
         lookup = '__'.join([name, 'isnull'])
         return queryset.filter(**{lookup: False})
