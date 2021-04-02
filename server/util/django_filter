@@ -176,7 +176,7 @@ class F(FilterSet):
 
     class Meta:
         model = Book
-        fields = ['published']
+        fields = ['published_on'] # 注意这列的字段一定是你最终queryset查询用到的字段 例如example中 published_on
 
 
 distinct
