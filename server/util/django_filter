@@ -173,6 +173,10 @@ class F(FilterSet):
 
         # alternatively, you could opt to hardcode the lookup. e.g.,
         # return queryset.filter(published_on__isnull=False)
+        
+        # 可以获取request 及其 request的属性
+        # user = self.request.user
+        # data = self.request.data or self.request.query_params
 
     class Meta:
         model = Book
