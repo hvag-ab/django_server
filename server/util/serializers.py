@@ -94,7 +94,7 @@ class ColorSerializer(serializers.Serializer):
 
 
 class ColorsSerializer(serializers.ModelSerializer):
-
+    #clothes =  ClothesSerializer(many=True) 一对多需要用many 
     favor = serializers.SerializerMethodField() # 添加新的返回值
 
     class Meta:
