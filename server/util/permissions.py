@@ -7,6 +7,9 @@ from rest_framework import permissions
 例如
 # user = self.request.user
 # data = self.request.data or self.request.query_params # 获取get or post delete请求方法传递过来的参数
+还可以给request绑定属性
+例如
+返回True的前面添加 request.hvag = "hvag"  这样后面的视图获取request方法的时候 直接拿这个属性 达到传递变量的作用
 """
 class IsOwnerOrReadOnly(permissions.BasePermission):
 
