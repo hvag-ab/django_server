@@ -3,6 +3,7 @@ from rest_framework import permissions
 
 # example  视图 permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly)
 """
+执行顺序是现验证token session 然后在执行权限认证
 可以获取request的属性
 例如
 # user = self.request.user
