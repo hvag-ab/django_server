@@ -12,19 +12,11 @@ def debug_task(self):
 
 # 定义任务函数
 @celery_app.task(bind=True)
-def send_register_active_email(self,to_email, username, token):
-    '''发送激活邮件'''
-    # 组织邮件信息
-    subject = '欢迎信息'
-    message = ''
-    sender = settings.DEFAULT_FROM_EMAIL
-    receiver = [to_email]
-    html_message = '<h1>%s, 欢迎您成为xxx注册会员</h1>请点击下面链接激活您的账户<br/><a href="http://127.0.0.1:8000/user/active/%s">http://127.0.0.1:8000/user/active/%s</a>' % (username, token, token)
+def send_email(self,subject,message,from_email,recipient_list,**kwargs):
 
-    print("=========== 执行发送邮件 ===============")
 
     try:
-        send_mail(subject, message, sender, receiver, html_message=html_message)
+        send_mail(subject,message,from_email,recipient_list,**kwargs)
     except Exception as e:
         """
                 邮件发送失败，使用retry进行重试

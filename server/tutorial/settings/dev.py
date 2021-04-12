@@ -5,6 +5,7 @@ from .common import *  # noqa
 DEBUG = True
 
 DEV_INSTALLED_APPS = [
+    'app'
 ]
 
 
@@ -16,12 +17,14 @@ ALLOWED_HOSTS = [
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': SECRETS['dev']['db']['name'],
-        'HOST': SECRETS['dev']['db']['host'],
-        'PORT': SECRETS['dev']['db']['port'],
-        'USER': SECRETS['dev']['db']['user'],
-        'PASSWORD': SECRETS['dev']['db']['password']
+        # 'ENGINE': 'django.db.backends.mysql',
+        # 'NAME': SECRETS['dev']['db']['name'],
+        # 'HOST': SECRETS['dev']['db']['host'],
+        # 'PORT': SECRETS['dev']['db']['port'],
+        # 'USER': SECRETS['dev']['db']['user'],
+        # 'PASSWORD': SECRETS['dev']['db']['password']
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': str(BASE_DIR/'app.db'),
     },
 }
 

@@ -1,10 +1,11 @@
 import traceback
 from django.core.exceptions import PermissionDenied
+from django.conf import settings
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.exceptions import (AuthenticationFailed, MethodNotAllowed, NotAuthenticated,
                                        PermissionDenied as RestPermissionDenied,
-                                       ValidationError)
+                                       ValidationError,NotFound)
 from django.http import Http404
 
 
@@ -31,12 +32,15 @@ def exception_handler(exc, content):
         status = 404
         msg = "Not found"
 
+    elif isinstance(exc,NotFound):
+        status = 404
+        msg = exc.detail
+
     else:
         # 调试模式
-        print(traceback.format_exc(limit=2))
-        # if settings.DEBUG:
-        #     raise exc
-        # 正式环境，屏蔽500
+        print(traceback.format_exc())
+        if settings.DEBUG:
+            raise exc
         status = 500
         msg = traceback.format_exc(limit=2)
         data = content['request'].data or content['request'].query_params

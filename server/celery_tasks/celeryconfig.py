@@ -2,14 +2,15 @@ import os
 from django.conf import settings
 # from celery.schedulers import crontab
 from kombu import Exchange, Queue
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", f"{settings.PROJECT_NAME}.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", f"tutorial.settings")
 
 REDIS = settings.REDIS
+print('redisbackend',REDIS)
 
 # 设置代理人broker
 broker_url =  f"{REDIS}/7"
 # 指定 结果Backend
-RESULT_BACKEND = f"{REDIS}/8"
+result_backend = f"{REDIS}/8"
 # BROKER_POOL_LIMIT = 50
 # CELERY_REDIS_MAX_CONNECTIONS = 60
 # BROKER_TRANSPORT_OPTIONS = {
@@ -36,7 +37,7 @@ ACCEPT_CONTENT = ['pickle', 'json']
 # celery任务执行结果的超时时间，
 TASK_RESULT_EXPIRES = 10
 # 设置默认不存结果
-IGNORE_RESULT = True
+IGNORE_RESULT = False
 
 # celery 的启动工作数量设置
 WORKER_CONCURRENCY = 10
@@ -65,7 +66,8 @@ DISABLE_RATE_LIMITS = True
 # 规定完成任务的时间
 TASK_TIME_LIMIT = 15 * 60  # 在15分钟内完成任务，否则执行该任务的worker将被杀死，任务移交给父进程
 
-# 设置默认的队列名称，如果一个消息不符合其他的队列就会放在默认队列里面，如果什么都不设置的话，数据都会发送到默认的队列中
+# 设置默认的队列名称，如果一个消息不符合其他的队列就会放在默认队列里面，如果什么都不设置的话，
+# 数据都会发送到默认的队列中
 DEFAULT_QUEUE = "default"
 
 # 设置详细的队列

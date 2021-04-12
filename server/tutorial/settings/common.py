@@ -18,7 +18,7 @@ import json
 from pathlib import Path
 
 PROJECT_PACKAGE = Path(__file__).resolve().parent.parent
-PROJECT_NAME = str(PROJECT_PACKAGE).split('/')[-1]
+PROJECT_NAME = PROJECT_PACKAGE.parts[-1]
 
 BASE_DIR = PROJECT_PACKAGE.parent
 # Quick-start development settings - unsuitable for production
@@ -83,6 +83,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = f'{PROJECT_NAME}.wsgi.application'
+
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
@@ -284,6 +285,11 @@ LOGGING = {
             "handlers": [],
             "level": "DEBUG",
             "propagate": False,
+        },
+        "debug": {
+            'handlers': ['console'],
+            'propagate': True,
+            'level': 'DEBUG',
         },
         # 打印sql日志
         'django.db.backends': {

@@ -1,15 +1,17 @@
 from django.db import models
-from django.db.models import CheckConstraint,UniqueConstraint
+# from django.db.models import CheckConstraint, UniqueConstraint
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+
 class BaseModel(models.Model):
-    is_delete = models.BooleanField(default=False)
-    created_time = models.DateTimeField(auto_now_add=True)
+    updated_time = models.DateTimeField(auto_now=True) # 无论更新or添加都会更改时间
+    created_time = models.DateTimeField(auto_now_add=True) # 添加才会更改时间
 
     class Meta:
         # 基表，为抽象表，是专门用来被继承，提供公有字段的，自身不会完成数据库迁移
         abstract = True
+
 
 class Colors(BaseModel):
     colors = models.CharField(max_length=10)  # 蓝色
@@ -18,10 +20,10 @@ class Colors(BaseModel):
         return self.colors
 
     class Meta:
-        db_table = "colors" #在数据库中的表名
+        db_table = "colors"  # 在数据库中的表名 当使用数据库已经存在表的时候 可以用这个字段指定哪个表
         # ordering = ('id',) #按照某些字段排序
-        #permissions = (('定义好的权限', '权限说明'),)
-        #给数据库的表设置额外的权限
+        # permissions = (('定义好的权限', '权限说明'),)
+        # 给数据库的表设置额外的权限
         # managed = True  # 如果为false django只能查询这个表 不能增删改
         # unique_together = ('id', 'colors') #联合唯一键
         # constraints = [
@@ -36,8 +38,7 @@ class Colors(BaseModel):
              update_fields=None):  # 模型保存是 执行其他逻辑
 
         # if self.pk: 添加   if not self.pk 表示更新
-        #     Clothes.objects.create(color=self)#
-        # do something
+        #     do something
 
         super().save(force_insert, force_update, using,
                      update_fields)
@@ -49,16 +50,17 @@ class Colors(BaseModel):
 
 
 class Ball(models.Model):
-    color = models.OneToOneField("Colors", on_delete=models.CASCADE,related_name="ball_color")  # 与颜色表为一对一，颜色表为母表
+    color = models.OneToOneField("Colors", on_delete=models.CASCADE, related_name="ball_color")  # 与颜色表为一对一，颜色表为母表
     description = models.CharField(max_length=10)  # 描述
 
     def __str__(self):
         return self.description
 
 
-class Clothes(models.Model):
-    color = models.ForeignKey("Colors", on_delete=models.CASCADE,related_name="clothes_color")  # 与颜色表为外键，颜色表为母表
+class Clothes(BaseModel):
+    color = models.ForeignKey("Colors", on_delete=models.CASCADE, related_name="clothes_color")  # 与颜色表为外键，颜色表为母表
     description = models.CharField(max_length=10, null=True)  # 描述
+    total = models.IntegerField(default=0)
 
     def __str__(self):
         return self.description
@@ -66,18 +68,26 @@ class Clothes(models.Model):
 
 class Child(models.Model):
     name = models.CharField(max_length=10)  # 姓名
-    favor = models.ManyToManyField('Colors',related_name='child_favor')  # 与颜色表为多对多
+    favor = models.ManyToManyField('Colors', related_name='child_favor')  # 与颜色表为多对多
+
+
+#文件操作
+class MyFile(models.Model):
+
+    image_url = models.ImageField(upload_to='media/images/%Y/%m/%d', null=False, blank=False, verbose_name='图片url')
+    file_url = models.FileField(upload_to='media/files/%Y/%m/%d', null=False, blank=False, verbose_name='文件url')
+
 
 # 信号
 @receiver(post_save, sender=Colors)
 def create_user_token(sender, instance=None, created=False, **kwargs):
-    if created:# 如果Colors创建一条记录那么
-        Clothes.objects.create(color=instance)#
+    if created:  # 如果Colors创建一条记录那么
+        Clothes.objects.create(color=instance)  #
 
 
 """
 Django项目中经常使用到信号，但使用信号的代码更难阅读和维护。在保持不同模型数据同步更新时，
-到底使用信号signals，还是重写save方法更好？作者也给出了建议：
+到底使用信号signals，还是重写save方法更好？建议：
 
 当你的字段依赖于一个你可以控制的模型，推荐使用重写 .save
 如果你的字段依赖于一个你不能控制第三方app的模型，使用信号。
@@ -85,7 +95,7 @@ Django项目中经常使用到信号，但使用信号的代码更难阅读和�
 ForeignKey 参数说明
 to_field 表示指定关联另一个表的哪一个字段 被关联的字段必须是唯一建 默认是关联到主键上
 db_constraint  表示是否在数据库层面建立外键 false表示不在数据库层面建立 这种可以在已有的两表中建立外键关系，If this is set to False, accessing a related object that doesn't exist will raise its DoesNotExist exception.
-related_name 关联名 表示反相查询时用的名称
+related_name 关联名 表示反向查询时用的名称
 db_column='hvag' 指定这个字段在表中对应哪个字段名称,如果不指定 外键默认变成hvag_id 
 特别说明
 一旦作为外键的字段例如hvag 那么在数据库中就会默认变成 hvag_id _id是django添加的 用来保存被关联的表的字段对应的值 
@@ -143,7 +153,7 @@ Clothes.objects.get(description="灰裙子").delete()
 ch = Child.objects.prefetch_related('favor').get(name='a')
 for i in ch.favor.all():
     print(i.colors)
-    
+
 # 反向
 color_obj = Colors.objects.get(colors="黄")
 print(color_obj.child_favor.all())
@@ -151,17 +161,18 @@ print(color_obj.child_favor.all())
 """
 
 # 自定义user
-from django.db import models
-from django.contrib.auth.models import AbstractUser
-from django.contrib.auth import get_user_model
+# from django.db import models
+# from django.contrib.auth.models import AbstractUser
+# from django.contrib.auth import get_user_model
+#
+#
+# # Create your models here.
+# class Profile(AbstractUser):
+#     phone = models.CharField(max_length=11)
 
-# Create your models here.
-class Profile(AbstractUser):
-    phone = models.CharField(max_length=11)
 
+# settings.py
 
-#settings.py
-
-AUTH_USER_MODEL = 'youpath.Profile'
+# AUTH_USER_MODEL = 'youpath.Profile'
 
 # 后续需要用到user模型 需要 使用 User = get_user_model()

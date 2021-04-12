@@ -9,7 +9,16 @@ from openpyxl.styles import Side, Border, colors, PatternFill, Alignment, Font
 
 class ExcelToModel:
 
-    def __init__(self, file, header, serializer, first_row=1, sheet_no=0, request=None):
+    def __init__(self, file, header, serializer, first_row=1, sheet_no=0, request=None, save=True):
+        """
+        :param file: 上传的excel二进制数据
+        :param header: # excel表头映射成模型的字段名
+        :param serializer: # 序列化器 验证excel中的数据
+        :param first_row: # 从哪一行开始获取数据
+        :param sheet_no: # 获取excel中哪一个sheet
+        :param request: # request 对象
+        :param save: # 是否序列化后保存 这里的保存是一条条保存 如果数据量大 就影响数据库性能（建议批量保存 就save=false获取数据后在操作）
+        """
         self.wb = openpyxl.load_workbook(file)
         sheet_names = self.wb.sheetnames
         self.worksheet = self.wb[sheet_names[sheet_no]]
@@ -21,6 +30,7 @@ class ExcelToModel:
         self.first_row = first_row
         self.serializer = serializer
         self.request = request
+        self.save = save
 
     @property
     def excel2array(self):
@@ -30,6 +40,8 @@ class ExcelToModel:
             data = dict(zip(self.header, row_data))
             serialize = self.serializer(data=data,context={'request':self.request})
             if serialize.is_valid():
+                if self.save:
+                    serialize.save()
                 datas.append(serialize.data)
             else:
                 return serialize.errors

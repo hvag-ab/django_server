@@ -8,39 +8,17 @@ from rest_framework_jwt.settings import api_settings
 # permission_classes = (IsAuthenticated,)  # 必须是注册的用户才能访问 注意
 # authentication_classes = (JSONWebTokenAuthentication,)
 
-# 自定义 token 认证  获取user信息 认证失败返回401状态码
 class Authentication(BaseAuthentication):
-    keyword = 'Token'
+
 
     def authenticate(self, request):
-        # token = self.get_authorization_header(request)
+        # data = request.data or request.query_params
+        # auth =  request.META.get('HTTP_AUTHORIZATION', b'') 获取header值 必须大写且加上HTTP_
         # do something
         # 第一个参数必须返回 user实例 供 request.user 调用
+        # 错误 raise exceptions.AuthenticationFailed('No such user')
         # return (user, token)
         return super().authenticate(request)
-
-    def get_authorization_header(self, request):
-        """
-        Authorization: Token 401f7ac837da42b97f613d789819ff93537bee6a
-        """
-        auth = request.META.get('HTTP_AUTHORIZATION', b'')
-        # auth = 'Token 401f7ac837da42b97f613d789819ff93537bee6a'
-        if isinstance(auth, str):
-            # Work around django test client oddness
-            auth = auth.encode('iso-8859-1')
-
-        auth = auth.split()
-        if len(auth) > 2:
-            msg = 'Invalid token header. Token string should not contain spaces.'
-            raise exceptions.AuthenticationFailed(msg)
-
-        keyword = auth[0].decode()
-        token = auth[1].decode()
-
-        if keyword != self.keyword:
-            raise exceptions.AuthenticationFailed(f'缺少关键字{self.keyword}开头')
-
-        return token
 
 
 # jwt 认证
