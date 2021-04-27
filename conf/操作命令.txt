@@ -20,6 +20,9 @@ cp supervisord /usr/bin
 cd 进入conf 所在的目录
 sudo supervisord -c conf/supervisord.conf
 
+如果更改了配置文件要更新
+supervisorctl -c conf/supervisord.conf update
+
 supervisorctl status
 查看哪些进程在运行 （最左边的列就是进程名字)
 
