@@ -1,15 +1,13 @@
-import os
-import platform
 """
-export DJANGO_ENV= prod  也可以添加docker 一般默认开发环境
+说明
+manage.py 启动测试环境 已经配置好dev的setting
+gunicorn 启动 wsgi.py 已经配置好prod的setting
+如果使用 supervisorctl 启动 那么要在ini里面配置好环境变量 方便使用哪一个setting启动
+例如 添加 environment=DJANGO_SETTINGS_MODULE=adminset.settings.dev
+docker 启动 默认用gunicorn启动 那么就默认prod启动 当然也可以通过docker添加环境变量启动
 """
 
-system = platform.system().lower() != 'linux'
 
-if os.getenv('DJANGO_ENV') == 'dev' or system:
-    from .prod import *
-else:
-    from .dev import *
 
 
 
