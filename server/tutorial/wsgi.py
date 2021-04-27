@@ -10,9 +10,8 @@ https://docs.djangoproject.com/en/1.11/howto/deployment/wsgi/
 import os
 
 from django.core.wsgi import get_wsgi_application
-from django.conf import settings
 
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", f"{settings.PROJECT_NAME}.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tutorial.settings.prod") # 这里是上线配置用prod设置
 
 application = get_wsgi_application()
