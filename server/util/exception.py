@@ -13,7 +13,7 @@ def exception_handler(exc, content):
 
     if isinstance(exc, (NotAuthenticated, AuthenticationFailed)):
         status = 401
-        msg = '用户未登录或登录态失效，请使用登录链接重新登录'
+        msg = exc.detail if hasattr(exc, 'detail') else '用户未登录或登录态失效，请使用登录链接重新登录'
 
     elif isinstance(exc, PermissionDenied) or isinstance(exc, RestPermissionDenied):
         status = 403
