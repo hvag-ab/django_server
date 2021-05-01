@@ -2,7 +2,7 @@ import os
 from django.conf import settings
 # from celery.schedulers import crontab
 from kombu import Exchange, Queue
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", f"tutorial.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", f"tutorial.settings.dev")
 
 REDIS = settings.REDIS
 print('redisbackend',REDIS)
