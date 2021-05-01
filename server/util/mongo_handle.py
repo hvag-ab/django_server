@@ -387,3 +387,14 @@ class VerboseMongoLogHandler(BaseMongoLogHandler):
 
         return mongolog_record
 
+“”“
+日志handler 设置
+
+  'mongolog': {
+            'level': 'CRITICAL',
+            'class': 'mongolog.SimpleMongoLogHandler',
+            'connection': 'mongodb://xxx:27017',
+            'collection': 'mongolog'
+        },
+
+“”“
