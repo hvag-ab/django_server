@@ -123,7 +123,11 @@ USE_I18N = False
 USE_L10N = False
 
 USE_TZ = True
-
+"""
+查出来是utc时间 需要这个方法转化为本地时间
+from django.utils.timezone import localtime
+result = localtime(some_time_object)
+"""
 # 时间格式、语言
 DATETIME_FORMAT = 'Y-m-d H:i:s'
 
