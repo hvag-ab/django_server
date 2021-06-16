@@ -11,6 +11,10 @@ from rest_framework import permissions
 还可以给request绑定属性
 例如
 返回True的前面添加 request.hvag = "hvag"  这样后面的视图获取request方法的时候 直接拿这个属性 达到传递变量的作用
+view参数 是获取视图的类属性方法
+class x(APIView):
+   params = "x"
+view.params = 'x'
 """
 class IsOwnerOrReadOnly(permissions.BasePermission):
 
