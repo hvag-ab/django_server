@@ -1,7 +1,7 @@
-django==2.2.16
+django
 mysqlclient
 django-debug-toolbar
-pillow==6.2.0
+pillow
 djangorestframework
 bcrypt
 django-filter
