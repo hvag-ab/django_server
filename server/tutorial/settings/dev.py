@@ -80,7 +80,7 @@ class NoDbTestRunner(DiscoverRunner):
         pass
 
 
-TEST_RUNNER = f'{PROJECT_NAME}.settings.NoDbTestRunner'
+TEST_RUNNER = f'{PROJECT_NAME}.settings.dev.NoDbTestRunner'
 
 try:
     import debug_toolbar  # NOQA
