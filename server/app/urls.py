@@ -14,6 +14,7 @@ urlpatterns = [
     path('upload_file/', views.UploadFileView.as_view(),name="upload"),
     path('upload_excel/', views.UploadExcel.as_view(),name="upload_excel"),
     path('download_excel/', views.Download.as_view(),name="download_excel"),
+    path('download_file/', views.DownloadFile.as_view(),name="download_file"),
     # 缓存
     path('page_cache/',views.PageCacheView.as_view(),name='page_cache'),
     path('http_cache/',views.HttpCacheView.as_view(),name='http_cache'),

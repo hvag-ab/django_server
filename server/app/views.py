@@ -1,10 +1,13 @@
 from django.contrib.auth.models import User
+from django.http import StreamingHttpResponse, FileResponse
+from django.conf import settings
 from rest_framework import generics, filters
-from rest_framework.parsers import JSONParser, FormParser, FileUploadParser,MultiPartParser
+from rest_framework.parsers import JSONParser, FormParser, FileUploadParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions
+from rest_framework.exceptions import NotFound
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -19,6 +22,7 @@ from util.response import JsResponse
 from util.paginations import CustomPagination
 from util.permissions import IsOwnerOrReadOnly
 from util.authentication import Authentication
+
 
 # query参数获取 request.query_params
 # form json参数获取 request.data
@@ -65,7 +69,7 @@ class API(APIView):
     def delete(self, request, *args, **kwargs):
         id = request.data.get('id')
         deleted, _rows_count = User.objects.filter(id=id).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT,data={'rows':_rows_count})
+        return Response(status=status.HTTP_204_NO_CONTENT, data={'rows': _rows_count})
 
 
 class CreateAPI(generics.CreateAPIView):  # 你也可以使用ListCreateAPIView
@@ -94,7 +98,6 @@ class DetailAPI(generics.RetrieveUpdateDestroyAPIView):  # 可以单独使用Des
         self.check_object_permissions(self.request, obj)  # 显示调用对象级权限检查对象
         return obj
 
-
     def get(self, request, *args, **kwargs):
         return self.retrieve(self, request, *args, **kwargs)
 
@@ -111,7 +114,7 @@ class ListView(generics.ListAPIView):
     pagination_class = CustomPagination  # 分页器
     permission_classes = [permissions.AllowAny]
     # authentication_classes = [Authentication]
-    versioning_class = APIVersioning # api版本控制
+    versioning_class = APIVersioning  # api版本控制
 
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
     filterset_class = ClothesFilter  # 自定义过滤
@@ -142,10 +145,9 @@ class Retrive(generics.GenericAPIView):
     # JSONParser：表示只能解析content-type:application/json的头
     # FormParser:表示只能解析content-type:application/x-www-form-urlencoded的头
 
-
-    def get(self,request,*args,**kwargs):
+    def get(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        instance = self.serializer_class(queryset,many=True)
+        instance = self.serializer_class(queryset, many=True)
         return JsResponse(data=instance.data)
 
     # def permission_denied(self, request, message=None):
@@ -165,7 +167,8 @@ class UploadFileView(generics.CreateAPIView):
     queryset = MyFile.objects.all()
     serializer_class = MyFileSerializer
     # serializer_class = ListImgSerializer 解析多张文件视图的序列化器
-    parser_classes = (MultiPartParser, FileUploadParser,)  # 解析file 使request.data包含file信息解析file_obj = request.data['file']
+    parser_classes = (
+    MultiPartParser, FileUploadParser,)  # 解析file 使request.data包含file信息解析file_obj = request.data['file']
 
 
 class UploadExcel(generics.CreateAPIView):
@@ -178,7 +181,7 @@ class UploadExcel(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         data = request.data
-        serializer = self.serializer_class(data=data,context={'request':request})
+        serializer = self.serializer_class(data=data, context={'request': request})
         if serializer.is_valid():
             ok = serializer.save()
             return Response(ok)
@@ -203,6 +206,19 @@ class Download(generics.ListAPIView):
         else:
             return ModelToExcel(headers=self.header, data=data).export_as_excel
 
+
+class DownloadFile(APIView):
+
+    def get(self, request, *args, **kwargs):
+        no = request.query_params.get("no")
+        file_name = f'{no}.zip'
+        file_full_path = getattr(settings,'FILE_FOLDER','') +  '/' + file_name
+        try:
+            file=open(file_full_path,'rb')
+        except:
+            return JsResponse(code=False,msg='解析文件错误')
+        response =FileResponse(file,filename=file_name)
+        return response
 
 ##### 页面缓存
 
@@ -242,10 +258,12 @@ Last-Modified和Etags如何帮助提高性能?
 服务器检查该Last-Modified或ETag，并判断出该页面自上次客户端请求之后还未被修改，直接返回响应304和一个空的响应体。
 """
 
+
 # 这是通过 浏览器请求头中 etag值 来判断请求是否发生了变化 这里逻辑判断传入的参数是否变化 返回参数的hash值
 def etag(request, *args, **kwargs):
     data = request.data or request.query_params
     return hashlib.md5(':'.join(dict(data).values()).encode('utf-8')).hexdigest()
+
 
 # 这是通过 浏览器请求头中 Last-Modified 时间 来判断请求是否发生了变化 更新 这里返回更新时间
 def last_modified(request, *args, **kwargs):
@@ -315,6 +333,7 @@ class CacheLow(APIView):
         """
 
         return Response(data='')
+
 
 #######################################
 # 事务 发生错误回滚 防止写入脏数据 一般用在一个视图里面有多个更新 删除 添加操作 某一个操作发生错误 回滚到最初状态,防止部分数据修改
@@ -452,11 +471,12 @@ import logging
 
 logger = logging.getLogger('debug')
 
+
 class CeleryAdd(APIView):
 
-    def get(self,request,*args,**kwargs):
+    def get(self, request, *args, **kwargs):
         try:
-            result = add.apply_async(args=(2, 2))
+            result = add.apply_async(args=(2, 2),queue="default")
             # value = result.get()  # 等待任务执行完毕后，才会返回任务返回值 这是阻塞操作
             #
             # print(result.__dict__)  # 结果信息
@@ -465,7 +485,7 @@ class CeleryAdd(APIView):
             # print(result.ready())  # 是否执行完成
             # print(result.state)  # 状态 PENDING -> STARTED -> SUCCESS/FAIL
             # print(value)
-            return JsResponse(data={'celery_id':result.id})
+            return JsResponse(data={'celery_id': result.id})
         except add.OperationalError as exc:  # 任务异常处理
             logger.exception('Sending task raised: %r', exc)
             return JsResponse(msg=f'Sending task raised: {exc}')
@@ -475,9 +495,7 @@ class CeleryMul(APIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            result = mul.apply_async(args=(2, 3))
-            value = result.get()
-            print(value)
+            result = mul.apply_async(args=(2, 3),queue="task_heavy")
             return JsResponse(data={'celery_id': result.id})
         except mul.OperationalError as exc:  # 任务异常处理
             logger.exception('Sending task raised: %r', exc)

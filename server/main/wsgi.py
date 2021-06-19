@@ -12,6 +12,6 @@ import os
 from django.core.wsgi import get_wsgi_application
 
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tutorial.settings.prod") # 这里是上线配置用prod设置
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "main.settings.prod") # 这里是上线配置用prod设置
 
 application = get_wsgi_application()

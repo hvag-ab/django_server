@@ -154,10 +154,40 @@ ch = Child.objects.prefetch_related('favor').get(name='a')
 for i in ch.favor.all():
     print(i.colors)
 
+Child.objects.filter(favor=Colors.objects.get(colors="黄"))
+
 # 反向
 color_obj = Colors.objects.get(colors="黄")
 print(color_obj.child_favor.all())
 
+母表对象.filter(子表表名小写__子表字段名="过滤条件")
+Colors.objects.filter(child__name="a")
+
+增 和 改 
+正向
+Child.objects.create(name="b").favor.add(*(Colors.objects.all()))
+改
+ch = Child.objects.get(name="b")
+ch.favor = Colors.objects.get(...) ch.save()
+
+反向
+ch = Child.objects.create(name="c")
+color = Colors.objects.get(c_name="c")
+color.child_favor.add(ch)
+
+chs = Child.objects.all()
+color = Colors.objects.get(c_name="c")
+color.child_favor.add(*chs)
+
+删
+#删除子表数据
+color = Colors.objects.get(c_name="c")
+color.child_favor.all().delete()
+Child.objects.delete()
+
+删除母表与子表关联关系
+color = Colors.objects.get(c_name="c")
+color.child_favor.clear()
 """
 
 # 自定义user

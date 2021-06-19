@@ -1,9 +1,7 @@
 import time
-from celery_tasks.celery import app as celery_app
-
-
+from celery_tasks.celery_main import app as celery_app
 
 @celery_app.task
 def add(x, y):
-    time.sleep(5)
+    time.sleep(3)
     return x + y

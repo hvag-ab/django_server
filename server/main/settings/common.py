@@ -296,11 +296,11 @@ LOGGING = {
             'level': 'DEBUG',
         },
         # 打印sql日志
-        'django.db.backends': {
-            'handlers': ['console'],
-            'propagate': True,
-            'level': 'DEBUG',
-        },
+        # 'django.db.backends': {
+        #     'handlers': ['console'],
+        #     'propagate': True,
+        #     'level': 'DEBUG',
+        # },
         'rotating_time': {
             'handlers': ['rotating_time'],
             'level': 'DEBUG',

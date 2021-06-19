@@ -1,16 +1,25 @@
 import os
 from django.conf import settings
-# from celery.schedulers import crontab
 from kombu import Exchange, Queue
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", f"tutorial.settings.dev")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "main.settings.dev")
 
 REDIS = settings.REDIS
-print('redisbackend',REDIS)
 
 # 设置代理人broker
 broker_url =  f"{REDIS}/7"
+
+# 设置默认不存结果
+IGNORE_RESULT = False
 # 指定 结果Backend
-result_backend = f"{REDIS}/8"
+# result_backend = f"{REDIS}/8" # redis后端
+result_backend = 'django-db' # 设置执行结果保存到django的数据库中。
+"""
+$ pip install django-celery-results
+INSTALLED_APPS = [
+'django_celery_results',
+]
+$ python manage.py migrate  
+"""
 # BROKER_POOL_LIMIT = 50
 # CELERY_REDIS_MAX_CONNECTIONS = 60
 # BROKER_TRANSPORT_OPTIONS = {
@@ -19,15 +28,10 @@ result_backend = f"{REDIS}/8"
 #
 # 指定时区，默认是 UTC
 TIMEZONE='Asia/Shanghai'
-#
+
+# 设置每个app模块的文件名 默认tasks
 # CELERY_IMPORTS = ('tasks',)
-# # 初始化定时任务
-# # CELERY_BEAT_SCHEDULE = {
-# #     "sample_task": {
-# #         "task": "core.tasks.sample_task",
-# #         "schedule": crontab(minute="*/1"),
-# #     },
-# # }
+
 # celery 序列化与反序列化配置
 TASK_SERIALIZER = 'pickle'
 RESULT_SERIALIZER = 'pickle'
@@ -36,8 +40,6 @@ ACCEPT_CONTENT = ['pickle', 'json']
 
 # celery任务执行结果的超时时间，
 TASK_RESULT_EXPIRES = 10
-# 设置默认不存结果
-IGNORE_RESULT = False
 
 # celery 的启动工作数量设置
 WORKER_CONCURRENCY = 10
@@ -72,14 +74,8 @@ DEFAULT_QUEUE = "default"
 
 # 设置详细的队列
 QUEUES = (
-    Queue('task_slow', exchange=Exchange('task_slow'), routing_key='task_slow'),
+    Queue('task_heavy', exchange=Exchange('task_heavy'), routing_key='task_heavy'),
 )
-# 配置各个任务分配到不同的任务队列
-ROUTES = {
-    'celery_task.tasks.xx': {
-        'queue': 'task_slow', 'routing_key': 'task_slow'
-    }
-}
 
 """
 任务指定特定的worker执行
@@ -90,15 +86,30 @@ celery提供了queue在区别不同的worker，很好的支持这种情况。
 
 启动worker时，-Q 指定worker支持的任务列队名, 可以支持多个队列名哦
 
-celery -A celery_tasks worker -l debug -c 4 -Q default,task_slow
+celery -A celery_tasks.celery_main worker -l debug -c 4 -Q default,task_heavy
 任务调用时， queue=*来指定需要执行worker
 
-result = mul.apply_async(args=(2, 2), queue='task_slow')
+result = mul.apply_async(args=(2, 2), queue='task_heavy')
+# 配置各个任务分配到不同的任务队列
+ROUTES = {
+    'celery_task.tasks.xx': {
+        'queue': 'task_heavy', 'routing_key': 'task_heavy'
+    }
+}
 """
 
 
-
+# 定时任务
 # celery beat配置（周期性任务设置）
 # CELERY_ENABLE_UTC = False
 # DJANGO_CELERY_BEAT_TZ_AWARE = False
-CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+# CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+# # 初始化定时任务
+# from celery.schedulers import crontab
+# # CELERY_BEAT_SCHEDULE = {
+# #     "sample_task": {
+# #         "task": "core.tasks.sample_task",
+# #         "schedule": crontab(minute="*/1"),
+# #     },
+# # }

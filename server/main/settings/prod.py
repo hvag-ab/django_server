@@ -2,9 +2,11 @@ from .common import *  # noqa
 
 DEBUG = False
 
+REDIS = f"redis://{SECRETS['prod']['redis']['host']}:{SECRETS['prod']['redis']['port']}"
 
 PROD_INSTALLED_APPS = [
-    # 'account',
+    'app',
+    'django_celery_results'
 ]
 
 INSTALLED_APPS += PROD_INSTALLED_APPS
@@ -47,7 +49,7 @@ REST_FRAMEWORK = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"redis://{SECRETS['prod_redis']['host']}:{SECRETS['prod_redis']['port']}/1", #这里直接使用redis别名作为host ip地址
+        "LOCATION":  f"{REDIS}/1", #这里直接使用redis别名作为host ip地址
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "CONNECTION_POOL_KWARGS": {"max_connections": 100}
@@ -57,7 +59,7 @@ CACHES = {
     },
     "account": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"redis://{SECRETS['prod_redis']['host']}:{SECRETS['prod_redis']['port']}/2",  # 账户相关的缓存放置2号表
+        "LOCATION": f"{REDIS}/2",  # 账户相关的缓存放置2号表
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "CONNECTION_POOL_KWARGS": {"max_connections": 100}
@@ -83,4 +85,3 @@ CACHES = {
 #         }
 
 
-REDIS = f"redis://{SECRETS['prod']['redis']['host']}:{SECRETS['prod']['redis']['port']}"

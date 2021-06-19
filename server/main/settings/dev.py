@@ -5,7 +5,8 @@ from .common import *  # noqa
 DEBUG = True
 
 DEV_INSTALLED_APPS = [
-    'app'
+    'app',
+    'django_celery_results'
 ]
 
 

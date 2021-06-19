@@ -16,7 +16,7 @@ self.retry: 重试
 import celery
 import time
 from celery.utils.log import get_task_logger
-from celery_tasks.celery import app as celery_app
+from celery_tasks.celery_main import app as celery_app
 
 logger = get_task_logger(__name__)
 

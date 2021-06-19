@@ -38,7 +38,7 @@ class ExcelToModel:
         for row in self.worksheet.iter_rows(min_row=self.first_row + 1):
             row_data = [cell.value for cell in row]
             data = dict(zip(self.header, row_data))
-            serialize = self.serializer(data=data,context={'request':self.request})
+            serialize = self.serializer(data=data, context={'request': self.request})
             if serialize.is_valid():
                 if self.save:
                     serialize.save()
@@ -51,12 +51,11 @@ class ExcelToModel:
         return datas
 
 
-
-
 class ModelToExcel:
 
     def __init__(self, headers: dict, data: [dict] = None, name: str = 'Sheet1', is_header: bool = False,
-                 dict_data: dict = None, ext: str = '.xlsx', title: str = None, merge: list = None, beauty:bool=True, cell_width=15):
+                 dict_data: dict = None, ext: str = '.xlsx', title: str = None, merge: list = None, beauty: bool = True,
+                 cell_width=15):
         """
         :param headers: excel表格头 {'定义的名称'：’字段名',....}
         :param data: 表格数据 [{'字段名':'字段的值’}]

@@ -1,19 +1,18 @@
 import os
 from django.utils import timezone
-from django.conf import settings
 from celery import Celery
 from celery import platforms
 
-from . import celeryconfig # 导入celery配置文件
+from . import celery_config  # 导入celery配置文件
 
 # 为celery设置环境变量
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", f"tutorial.settings")
-print(f"{settings.PROJECT_NAME}.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "main.settings")
+
 ## 创建celery app
 app = Celery('celery_tasks')
 
 # 从单独的配置模块中加载配置
-app.config_from_object(celeryconfig)
+app.config_from_object(celery_config)
 
 # 设置app自动加载任务 celery_tasks模块下的tasks 和 每个app模块下的tasks
 app.autodiscover_tasks(['celery_tasks'])
@@ -22,9 +21,6 @@ app.autodiscover_tasks(['celery_tasks'])
 # app.now = timezone.now
 # 强制以root用户运行 django 运行用户实际为非root用户
 platforms.C_FORCE_ROOT = True
-
-
-
 
 """
 celery并发计算规则
@@ -42,22 +38,18 @@ celery作为分布式的任务队列框架，worker是可以执行在不同的�
 使用合适的队列，如redis，单进程单线程的方式可以有效的避免同个任务被不同worker同时执行的情况。
 
 cd django项目中的manage.py同一层级文件里
-celery -A celery_tasks worker -l debug
+celery -A celery_tasks.celery_main worker -l info
+# 启动default task_heavy队列 耗时长任务使用task_heavy
+celery -A celery_tasks.celery_main worker -l info -Q default,task_heavy
+启动beat
+celery -A celery_tasks.celery_main beat --loglevel INFO
 
-windows系统启动:
+windows系统启动: celery==4.4  django-celery-results=1.8
 
-pip install gevent
-celery -A celery_tasks worker -l info -P gevent
+pip install gevent 
+celery -A celery_tasks worker.celery_main -l info -P gevent
 
 celery beat 启动
-INSTALLED_APPS = [
-    # ...
-    #'django_celery_results',  # 查看 celery 执行结果
-    'django_celery_beat',  # pip install django-celery-beat
-]
-$ python manage.py migrate
-celery -A celery_tasks beat --loglevel INFO
-# windows下
-celery -A celery_tasks beat -l info -P gevent
+celery -A celery_tasks.celery_main beat -l info -P gevent
 
 """

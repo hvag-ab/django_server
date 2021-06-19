@@ -2,18 +2,18 @@ from django.core.mail import send_mail
 from django.conf import settings
 import time
 from celery.utils.log import get_task_logger
-from celery_tasks.celery import app as celery_app # 导入创建好的celery应用  # 导入创建好的celery应用
+from celery_tasks.celery_main import app as celery_app # 导入创建好的celery应用  # 导入创建好的celery应用
 
 
-@celery_app.task(bind=True)
+@celery_app.task(bind=True) # bind的作用是可以使用self参数
 def debug_task(self):
-  print('Request: {0!r}'.format(self.request)) #dumps its own request information
+    task_id = self.request.id
+    print('Request: {0!r}'.format(self.request)) #dumps its own request information
 
 
 # 定义任务函数
 @celery_app.task(bind=True)
 def send_email(self,subject,message,from_email,recipient_list,**kwargs):
-
 
     try:
         send_mail(subject,message,from_email,recipient_list,**kwargs)
@@ -33,7 +33,7 @@ def send_email(self,subject,message,from_email,recipient_list,**kwargs):
 
 @celery_app.task
 def mul(x, y):
-    time.sleep(5)
+    time.sleep(10)
     return x * y
 
 
@@ -45,7 +45,7 @@ logger = get_logger(__name__)
 try:
     result = mul.apply_async(args=(2, 2))
     value = result.get() # 等待任务执行完毕后，才会返回任务返回值
-    
+    task_id = result.id
     print(result.__dict__) # 结果信息
     print(result.successful()) # 是否成功
     print(result.fail()) # 是否失败
