@@ -37,8 +37,10 @@ TASK_SERIALIZER = 'pickle'
 RESULT_SERIALIZER = 'pickle'
 ACCEPT_CONTENT = ['pickle', 'json']
 
+# 可选参数：给某个任务限流
+# task_annotations = {'celery_task.tasks.xx': {'rate_limit': '10/s'}}
 
-# celery任务执行结果的超时时间，
+# 为存储结果设置过期日期，默认1天过期。如果beat开启，Celery每天会自动清除。 设为0，存储结果永不过期
 TASK_RESULT_EXPIRES = 10
 
 # celery 的启动工作数量设置

@@ -2,34 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="681aef62-276c-475e-b7a9-5da6c1808dab" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/server/util/custom_sql.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/server/util/zip.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/conf/gunicorn.ini" beforeDir="false" afterPath="$PROJECT_DIR$/conf/gunicorn.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/app.db" beforeDir="false" afterPath="$PROJECT_DIR$/server/app.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/app/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/app/admin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/app/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/app/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/app/tasks.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/app/tasks.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/app/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/app/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/app/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/app/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/celery_tasks/celery.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/celery_tasks/celery_main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/celery_tasks/celery.txt" beforeDir="false" afterPath="$PROJECT_DIR$/server/celery_tasks/queue.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/celery_tasks/celeryconfig.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/celery_tasks/celery_config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/celery_tasks/monitor.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/celery_tasks/monitor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/celery_tasks/celery_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/celery_tasks/celery_config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server/celery_tasks/tasks.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/celery_tasks/tasks.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/gunicorn.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/gunicorn.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/manage.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/manage.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/tutorial/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/main/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/tutorial/settings/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/main/settings/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/tutorial/settings/common.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/main/settings/common.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/tutorial/settings/dev.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/main/settings/dev.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/tutorial/settings/docker.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/main/settings/docker.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/tutorial/settings/prod.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/main/settings/prod.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/tutorial/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/main/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/tutorial/wsgi.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/main/wsgi.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/util/excel.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/util/excel.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/util/mongo_handle.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -210,7 +185,10 @@
       <workItem from="1616826679160" duration="2878000" />
       <workItem from="1616837939232" duration="11114000" />
       <workItem from="1617024791352" duration="275000" />
-      <workItem from="1624058740143" duration="16729000" />
+      <workItem from="1624058740143" duration="17420000" />
+      <workItem from="1624098094859" duration="125000" />
+      <workItem from="1624162872760" duration="29000" />
+      <workItem from="1624162916525" duration="1468000" />
     </task>
     <servers />
   </component>
