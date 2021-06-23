@@ -101,3 +101,11 @@ ps -ef | grep celery
 ps auxww|grep "supervisor"|grep -v grep|awk '{print $2}'|xargs kill -9
 ps auxww|grep "celery worker"|grep -v grep|awk '{print $2}'|xargs kill -9
 ps auxww|grep "celery beat"|grep -v grep|awk '{print $2}'|xargs kill -9
+
+
+使用supervisor出现ModuleNotFoundError错误时是因为sys.path未加载所需模块所在的路径，可以通过设置environment来指明所需模块的路径。
+使用PYTHONPATH指明:
+environment=PYTHONPATH=/home/hunter/.local/lib/python3.6/site-packages
+对于用户python路径（pip install XXX --user安装的位置）(~/.local)，也可以通过指定HOME来让python找到模块所在的路径：
+environment=HOME=/home/hunter
+

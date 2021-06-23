@@ -2,9 +2,10 @@
 # 启动命令
 command=/Library/Frameworks/Python.framework/Versions/3.8/bin/celery -A celery_tasks worker -l info
 # 项目绝对路径
-directory=/Users/lihong/Downloads/django_server/server
+directory=/django_server所在的目录/django_server/server
 # 项目虚拟环境
 ;enviroment=PATH="/home/fatpuffer/.virtualenvs/dj_celery/bin"
+environment=DJANGO_SETTINGS_MODULE=main.settings.prod,PYTHONBUFFER=1
 # 自动启动
 autostart=true
 # 重启
@@ -23,5 +24,5 @@ redirect_stderr=true          ; redirect proc stderr to stdout (default false)
 stdout_logfile_maxbytes=1MB   ; max # logfile bytes b4 rotation (default 50MB)
 stdout_logfile_backups=3     ; # of stdout logfile backups (default 10)
 
-stderr_logfile=/Users/lihong/Downloads/django_server/logs/celery_worker_out.error
-stdout_logfile=/Users/lihong/Downloads/django_server/logs/celery_worker_out.log
+stderr_logfile=/django_server所在的目录/django_server/logs/celery_worker_out.error
+stdout_logfile=/django_server所在的目录/django_server/logs/celery_worker_out.log

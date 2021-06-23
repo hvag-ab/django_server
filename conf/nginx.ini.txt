@@ -3,7 +3,8 @@ command = /usr/sbin/nginx -g 'daemon off;'
 startsecs=0
 autostart=true
 autorestart=true
-stdout_logfile=/var/log/nginx_sup.log
-stderr_logfile = /var/log/nginx_err.log
 stopasgroup=true
 killasgroup=true`
+
+stderr_logfile=/django_server所在的目录/django_server/logs/nginx_error.error
+stdout_logfile=/django_server所在的目录/django_server/logs/nginx_accesss.log

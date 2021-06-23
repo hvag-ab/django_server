@@ -2,6 +2,10 @@ from django.test.runner import DiscoverRunner
 
 from .common import *  # noqa
 
+env = 'dev'
+
+REDIS = f"redis://{SECRETS[env]['redis']['host']}:{SECRETS[env]['redis']['port']}"
+
 DEBUG = True
 
 DEV_INSTALLED_APPS = [
@@ -19,11 +23,11 @@ ALLOWED_HOSTS = [
 DATABASES = {
     'default': {
         # 'ENGINE': 'django.db.backends.mysql',
-        # 'NAME': SECRETS['dev']['db']['name'],
-        # 'HOST': SECRETS['dev']['db']['host'],
-        # 'PORT': SECRETS['dev']['db']['port'],
-        # 'USER': SECRETS['dev']['db']['user'],
-        # 'PASSWORD': SECRETS['dev']['db']['password']
+        # 'NAME': SECRETS[env]['db']['name'],
+        # 'HOST': SECRETS[env]['db']['host'],
+        # 'PORT': SECRETS[env]['db']['port'],
+        # 'USER': SECRETS[env]['db']['user'],
+        # 'PASSWORD': SECRETS[env]['db']['password']
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': str(BASE_DIR/'app.db'),
     },
@@ -119,4 +123,4 @@ else:
     DEBUG_TOOLBAR_PATCH_SETTINGS = False
 
 
-REDIS = f"redis://{SECRETS['dev']['redis']['host']}:{SECRETS['dev']['redis']['port']}"
+

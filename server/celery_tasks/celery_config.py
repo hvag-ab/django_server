@@ -12,7 +12,7 @@ broker_url =  f"{REDIS}/7"
 IGNORE_RESULT = False
 # 指定 结果Backend
 # result_backend = f"{REDIS}/8" # redis后端
-result_backend = 'django-db' # 设置执行结果保存到django的数据库中。
+result_backend = 'django-db' # 设置执行结果保存到django的数据库中 是结果生成后才保存所以不能在tasks运行中使用。
 """
 $ pip install django-celery-results
 INSTALLED_APPS = [

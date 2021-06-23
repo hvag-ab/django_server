@@ -3,8 +3,20 @@
   <component name="ChangeListManager">
     <list default="true" id="681aef62-276c-475e-b7a9-5da6c1808dab" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/conf/celery_beat.ini.txt" beforeDir="false" afterPath="$PROJECT_DIR$/conf/celery_beat.ini.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/conf/celery_worker.ini.txt" beforeDir="false" afterPath="$PROJECT_DIR$/conf/celery_worker.ini.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/conf/gunicorn.ini" beforeDir="false" afterPath="$PROJECT_DIR$/conf/gunicorn.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/conf/nginx.ini.txt" beforeDir="false" afterPath="$PROJECT_DIR$/conf/nginx.ini.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/conf/uwsgi.ini.txt" beforeDir="false" afterPath="$PROJECT_DIR$/conf/uwsgi.ini.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/conf/操作命令.txt" beforeDir="false" afterPath="$PROJECT_DIR$/conf/操作命令.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/logs/django_json.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/logs/django_rotating.log" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/logs/django_rotating_time.log" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/server/celery_tasks/celery_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/celery_tasks/celery_config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/celery_tasks/tasks.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/celery_tasks/tasks.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/celery_tasks/monitor.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/celery_tasks/monitor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/main/settings/dev.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/main/settings/dev.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/main/settings/docker.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/main/settings/docker.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/main/settings/prod.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/main/settings/prod.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -188,7 +200,10 @@
       <workItem from="1624058740143" duration="17420000" />
       <workItem from="1624098094859" duration="125000" />
       <workItem from="1624162872760" duration="29000" />
-      <workItem from="1624162916525" duration="1468000" />
+      <workItem from="1624162916525" duration="1746000" />
+      <workItem from="1624165641349" duration="3700000" />
+      <workItem from="1624375257058" duration="2665000" />
+      <workItem from="1624454300698" duration="2284000" />
     </task>
     <servers />
   </component>

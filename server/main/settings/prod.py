@@ -2,7 +2,9 @@ from .common import *  # noqa
 
 DEBUG = False
 
-REDIS = f"redis://{SECRETS['prod']['redis']['host']}:{SECRETS['prod']['redis']['port']}"
+env = 'prod'
+
+REDIS = f"redis://{SECRETS[env]['redis']['host']}:{SECRETS[env]['redis']['port']}"
 
 PROD_INSTALLED_APPS = [
     'app',
@@ -19,11 +21,11 @@ ALLOWED_HOSTS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': SECRETS['prod']['db']['name'],
-        'HOST': SECRETS['prod']['db']['host'],
-        'PORT': SECRETS['prod']['db']['port'],
-        'USER': SECRETS['prod']['db']['user'],
-        'PASSWORD': SECRETS['prod']['db']['password']
+        'NAME': SECRETS[env]['db']['name'],
+        'HOST': SECRETS[env]['db']['host'],
+        'PORT': SECRETS[env]['db']['port'],
+        'USER': SECRETS[env]['db']['user'],
+        'PASSWORD': SECRETS[env]['db']['password']
     },
 }
 
@@ -49,7 +51,7 @@ REST_FRAMEWORK = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION":  f"{REDIS}/1", #这里直接使用redis别名作为host ip地址
+        "LOCATION": f"{REDIS}/1", #这里直接使用redis别名作为host ip地址
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "CONNECTION_POOL_KWARGS": {"max_connections": 100}
