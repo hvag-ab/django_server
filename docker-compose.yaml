@@ -81,26 +81,29 @@ services:
       network:
         ipv4_address: 177.7.0.14
 
-  # mongo:
-  #   image: mongo
-  #   container_name: mongo
-  #   hostname: mongo
-  #   restart: always
-  #   network:
-  #     ipv4_address: 177.7.0.15
-  #   ports:
-  #     - "27017:27017"
-  #   environment:
-  #     TZ: Asia/Shanghai
-  #     MONGO_INITDB_DATABASE: test
-  #     MONGO_INITDB_ROOT_USERNAME: root
-  #     MONGO_INITDB_ROOT_PASSWORD: hvag
-  #   volumes:
-  #     - /etc/localtime:/etc/localtime
-  #     - mongo-datavolume:/data/db
-  #     - ./init/:/docker-entrypoint-initdb.d/
-  #   command: mongod
+  mongo:
+    image: mongo
+    container_name: mongo
+    restart: always
+    #让容器拥有root权
+    privileged: true
+    ports:
+      - 27017:27017
+    environment:
+#      - MONGO_INITDB_DATABASE=test
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=123456
+    volumes:
+      - mongo-datavolume:/data/db
+      - ./mongo/init/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+      - ./mongo/mongod.conf.orig:/etc/mongod.conf.orig
+#    command: mongod
+    # command: --config ./mongo/mongod.conf.orig # 配置文件
+    networks:
+      network:
+        ipv4_address: 177.7.0.15
 
 volumes: # 自定义数据卷，位于宿主机/var/lib/docker/volumes内
   mysql-datavolume:
   redis-datavolume:
+  mongo-datavolume:
