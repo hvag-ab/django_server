@@ -16,3 +16,6 @@ drf-yasg
 django-redis
 redis
 celery
+django-celery-results
+django-celery-beat
+pymongo
