@@ -97,13 +97,36 @@ services:
       - mongo-datavolume:/data/db
       - ./mongo/init/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
       - ./mongo/mongod.conf.orig:/etc/mongod.conf.orig
-#    command: mongod
-    # command: --config ./mongo/mongod.conf.orig # 配置文件
     networks:
       network:
         ipv4_address: 177.7.0.15
+
+#    postgres:
+#      image: postgres
+#      container_name: postgresql
+#      restart: always
+#      privileged: true
+#      #    command:
+#      #      - "postgres"
+#      #      - "-c"
+#      #      - "config_file=/etc/postgresql/postgresql.conf"
+#      environment:
+#        - POSTGRES_ROOT_PASSWORD=root
+#        - POSTGRES_USER=postgres
+#        - POSTGRES_PASSWORD=postgres
+#        - POSTGRES_DB=test
+#        - POSTGRES_INITDB_ARGS="--encoding=UTF8"
+#      ports:
+#        - 4352:5432
+#      volumes:
+#        - postgres-datavolume:/var/lib/postgresql/data
+#      #      - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+#      networks:
+#        network:
+#          ipv4_address: 177.7.0.13
 
 volumes: # 自定义数据卷，位于宿主机/var/lib/docker/volumes内
   mysql-datavolume:
   redis-datavolume:
   mongo-datavolume:
+#  postgres-datavolume:
