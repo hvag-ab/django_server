@@ -72,13 +72,14 @@ CACHES = {
 }
 #缓存使用 from django.core.cache import caches  cache=caches['account']
 
-#
-# LOGGING["handlers"]["mongo"] = {
+# 日志写入mongo
+#LOGGING["handlers"]["mongo"] = {
 #     'level': 'INFO',
-#     'class': 'util.mongo_handler.SimpleMongoLogHandler',  # 保存到文件，自动切
-#     'connection': 'xxx',
-#     'max_keep': 1,
-#     'collection': 'mongoapp'
+#     'class': 'util.mongo_handler.BaseMongoLogHandler',  # 保存到文件，自动切
+#     'connection': 'mongodb://%s:%s@%s:%s/%s' % ("root", "123456", "172.17.111.237", "27017", "admin"),
+#     'max_keep': 1, # 当输入同一个消息message的时候 保留几条
+#     'database': 'test',
+#     'collection': 'log'
 # }
 # LOGGING["loggers"]["mongo"]= {
 #             'handlers': ['mongo'],
