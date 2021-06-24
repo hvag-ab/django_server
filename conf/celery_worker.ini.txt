@@ -5,7 +5,7 @@ command=/Library/Frameworks/Python.framework/Versions/3.8/bin/celery -A celery_t
 directory=/django_server所在的目录/django_server/server
 # 项目虚拟环境
 ;enviroment=PATH="/home/fatpuffer/.virtualenvs/dj_celery/bin"
-environment=DJANGO_SETTINGS_MODULE=main.settings.prod,PYTHONBUFFER=1
+environment=DJANGO_SETTINGS_MODULE=main.settings.prod
 # 自动启动
 autostart=true
 # 重启
