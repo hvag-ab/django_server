@@ -9,6 +9,9 @@ docker 启动 默认用gunicorn启动 那么就默认prod启动 当然也可以�
 修改tutorial名称 需要修改
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tutorial.settings.dev")
 分别在manage.py ,wsgi.py, celery_config, celery_main
+
+当dev和prod的数据不一样的时候  迁移数据库prod表 要用
+ python3 manage.py migrate --settings=main.settings.prod
 """
 
 
