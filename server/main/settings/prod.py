@@ -86,5 +86,6 @@ CACHES = {
 #             'propagate': True,
 #             'level': 'INFO',
 #         }
+# logger = logging.getLogger('mongo')  logger.info('abc',extra={'name':'hvag'})  为了消除同一个message 可以 logger.info(f'abc-{str(uuid.uuid1())}',extra={'name':'hvag'})
 
 
