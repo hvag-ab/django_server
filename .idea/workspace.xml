@@ -3,7 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="681aef62-276c-475e-b7a9-5da6c1808dab" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nginx/conf.d/gunicorn_nginx.conf" beforeDir="false" afterPath="$PROJECT_DIR$/nginx/conf.d/gunicorn_nginx.conf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nginx/conf.d/my.conf" beforeDir="false" afterPath="$PROJECT_DIR$/nginx/conf.d/my.conf" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -192,7 +193,9 @@
       <workItem from="1624375257058" duration="2665000" />
       <workItem from="1624454300698" duration="3672000" />
       <workItem from="1624459114046" duration="7000" />
-      <workItem from="1624535219355" duration="664000" />
+      <workItem from="1624535219355" duration="1190000" />
+      <workItem from="1624772534994" duration="36000" />
+      <workItem from="1624773850511" duration="732000" />
     </task>
     <servers />
   </component>

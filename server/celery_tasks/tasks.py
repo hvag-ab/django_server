@@ -1,3 +1,5 @@
+import asyncio
+
 from django.core.mail import send_mail
 from django.conf import settings
 import time
@@ -35,6 +37,14 @@ def send_email(self,subject,message,from_email,recipient_list,**kwargs):
 def mul(x, y):
     time.sleep(10)
     return x * y
+
+# async def async_function(param1, param2):
+#     # more async stuff...
+#     pass
+#
+# @celery_app.task(name='tasks.task_name', queue='queue_name')
+# def task_name(param1, param2):
+#     asyncio.run(async_function(param1, param2))
 
 
 """
