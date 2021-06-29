@@ -12,7 +12,16 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tutorial.settings.dev")
 
 当dev和prod的数据不一样的时候  迁移数据库prod表 要用
  python3 manage.py migrate --settings=main.settings.prod
-"""
+ 
+ 当迁移的模型中 如果有一些表已经在数据库中存在 迁移办法
+ 0. 删除所有app下的 migrations文件夹的文件 __init__.py不能删除
+ 1. 先把已经存在的表 模型在django中注释掉
+ 2. 然后python3 manage.py makemigrations  python3 manage.py migrate
+ 3. 然后把注释掉的模型取消注释、
+ 4. 然后python3 manage.py makemigrations  python3 manage.py migrate --fake
+ 5. 如果这张表含有其他外键关联 那么  就取消掉注释恢复那些关联这张表外键的模型
+ 6. 然后python3 manage.py makemigrations  python3 manage.py migrate
+""" 
 
 
 
