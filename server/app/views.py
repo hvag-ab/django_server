@@ -9,7 +9,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions
 from rest_framework.exceptions import NotFound
 from rest_framework import status
-from rest_framework.response import Response
+# from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from util.excel import ModelToExcel
@@ -32,7 +32,7 @@ from util.authentication import Authentication
 class NonSerialize(APIView):
     def get(self, request, *args, **kwargs):
         data = User.objects.values('id', 'username', 'email')
-        return Response(data)
+        return JsResponse(data=data, code=True)
 
 
 class API(APIView):
@@ -63,13 +63,13 @@ class API(APIView):
         serializer = UserinfoSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return JsResponse(serializer.data)
+        return JsResponse(msg=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, *args, **kwargs):
         id = request.data.get('id')
         deleted, _rows_count = User.objects.filter(id=id).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT, data={'rows': _rows_count})
+        return JsResponse(status=status.HTTP_204_NO_CONTENT, data={'rows': _rows_count})
 
 
 class CreateAPI(generics.CreateAPIView):  # 你也可以使用ListCreateAPIView
@@ -129,7 +129,7 @@ class ListView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
-        return Response(response.data)
+        return JsResponse(response.data)
 
 
 class Retrive(generics.GenericAPIView):
@@ -184,7 +184,7 @@ class UploadExcel(generics.CreateAPIView):
         serializer = self.serializer_class(data=data, context={'request': request})
         if serializer.is_valid():
             ok = serializer.save()
-            return Response(ok)
+            return JsResponse(ok)
         else:
             return JsResponse(data=serializer.errors, code=False)
 
@@ -202,7 +202,7 @@ class Download(generics.ListAPIView):
         serializer = self.get_serializer(queryset, many=True)
         data = serializer.data
         if not data:
-            return Response({'msg': '你查询的数据不存在'})
+            return JsResponse(msg = '你查询的数据不存在')
         else:
             return ModelToExcel(headers=self.header, data=data).export_as_excel
 
@@ -218,6 +218,7 @@ class DownloadFile(APIView):
         except:
             return JsResponse(code=False,msg='解析文件错误')
         response =FileResponse(file,filename=file_name)
+        response['Access-Control-Expose-Headers'] = 'Content-Disposition'
         return response
 
 ##### 页面缓存
@@ -236,7 +237,7 @@ class PageCacheView(APIView):
     @method_decorator(cache_page(60 * 60 * 2, cache='account'))
     def get(self, request, *args, **kwargs):
         data = User.objects.values('id', 'username', 'email')
-        return Response(data)
+        return JsResponse(data)
 
 
 #### http缓存
@@ -276,7 +277,7 @@ class HttpCacheView(APIView):  # 可以一起用 也可以只用一个 具体看
     def get(self, request, *args, **kwargs):
         data = request.data or request.query_params
         clothes = Clothes.objects.values()
-        return Response({'data': 'I have both Last-Modified and Etag!', 'clothes': clothes})
+        return JsResponse({'data': 'I have both Last-Modified and Etag!', 'clothes': clothes})
 
 
 # 底层缓存
@@ -332,7 +333,7 @@ class CacheLow(APIView):
         6
         """
 
-        return Response(data='')
+        return JsResponse(data='')
 
 
 #######################################

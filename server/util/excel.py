@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from openpyxl import Workbook
 import openpyxl
+from openpyxl.writer.excel import save_virtual_workbook
 from django.utils.encoding import escape_uri_path
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Side, Border, colors, PatternFill, Alignment, Font
@@ -82,9 +83,12 @@ class ModelToExcel:
     def export_as_excel(self):
 
         field_names = list(self.headers.keys())  # 模型所有字段名
-        response = HttpResponse(content_type='application/msexcel')  # 定义响应内容类型
-        response['Content-Disposition'] = "attachment; filename*=utf-8''{}".format(
-            escape_uri_path(self.name) + self.ext)  # 定义响应数据格式
+        filename = escape_uri_path(self.name) + self.ext
+        # response['Access-Control-Expose-Headers'
+        # response = HttpResponse(content_type='application/msexcel')  # 定义响应内容类型
+        # response['Content-Disposition'] = "attachment; filename*=utf-8''{}".format(
+        #     escape_uri_path(self.name) + self.ext)  # 定义响应数据格式
+        # response['Access-Control-Expose-Headers'] = 'Content-Disposition'
         wb = Workbook()
         ws = wb.active
 
@@ -134,7 +138,9 @@ class ModelToExcel:
                                                                bottom=Side(border_style='thin', color=colors.BLACK),
                                                                left=Side(border_style='thin', color=colors.BLACK),
                                                                right=Side(border_style='thin', color=colors.BLACK))
-        wb.save(response)
+        # wb.save(response)
+        response = HttpResponse(content=save_virtual_workbook(wb),content_type='application/msexcel')
+        response['Content-Disposition'] = f'attachment; filename={filename}'
         wb.close()
         return response
 

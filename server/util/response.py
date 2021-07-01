@@ -8,7 +8,7 @@ class JsResponse(Response):
     arbitrary media types.
     """
 
-    def __init__(self, data=None, code=None, msg=None,
+    def __init__(self, data=None, code=True, msg=None,
                  status=None,
                  template_name=None, headers=None,
                  exception=False, content_type=None):

@@ -2,7 +2,7 @@ import traceback
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
 from rest_framework import status
-from rest_framework.response import Response
+from util.response import JsResponse
 from rest_framework.exceptions import (AuthenticationFailed, MethodNotAllowed, NotAuthenticated,
                                        PermissionDenied as RestPermissionDenied,
                                        ValidationError,NotFound)
@@ -47,5 +47,5 @@ def exception_handler(exc, content):
         msg += '\n->传入的参数：' + str(data)
 
 
-    return Response(status=status,data=dict(code=False,msg=msg))
+    return JsResponse(status=status, code=False, msg=msg)
 
