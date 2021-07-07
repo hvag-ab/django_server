@@ -1,0 +1,15 @@
+任意python脚本or jupyter 启动django环境
+
+import os
+import sys
+
+import django
+
+sys.path.append(r'django项目所在的path')  # 将项目路径添加到系统搜寻路径当中（manage.py所在的文件夹）
+os.environ['DJANGO_SETTINGS_MODULE'] = 'main.settings.dev'  # 设置项目的配置文件
+os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
+
+django.setup()  # 加载项目配置
+
+
+# 开始实现功能模块
