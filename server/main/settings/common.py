@@ -167,7 +167,8 @@ STATICFILES_FINDERS = (
 # 跨域设置
 # # CORS 设置跨域域名
 CORS_ORIGIN_WHITELIST = (
-    'http://127.0.0.1',
+#     'http://127.0.0.1',
+    '*'
 )
 
 CORS_ALLOW_CREDENTIALS = True  # CORS_ALLOW_CREDENTIALS = True
