@@ -2,9 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="681aef62-276c-475e-b7a9-5da6c1808dab" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/server/util/mongo.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nginx/conf.d/gunicorn_nginx.conf" beforeDir="false" afterPath="$PROJECT_DIR$/nginx/conf.d/gunicorn_nginx.conf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nginx/conf.d/my.conf" beforeDir="false" afterPath="$PROJECT_DIR$/nginx/conf.d/my.conf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/config/secrets.json" beforeDir="false" afterPath="$PROJECT_DIR$/server/config/secrets.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/main/settings/common.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/main/settings/common.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/main/settings/dev.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/main/settings/dev.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/main/settings/docker.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/main/settings/docker.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/main/settings/prod.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/main/settings/prod.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -195,7 +199,11 @@
       <workItem from="1624459114046" duration="7000" />
       <workItem from="1624535219355" duration="1190000" />
       <workItem from="1624772534994" duration="36000" />
-      <workItem from="1624773850511" duration="732000" />
+      <workItem from="1624773850511" duration="1266000" />
+      <workItem from="1625140570942" duration="3325000" />
+      <workItem from="1625365011903" duration="2006000" />
+      <workItem from="1625760048531" duration="76000" />
+      <workItem from="1625872842859" duration="6216000" />
     </task>
     <servers />
   </component>

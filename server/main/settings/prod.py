@@ -5,6 +5,7 @@ DEBUG = False
 env = 'prod'
 
 REDIS = f"redis://{SECRETS[env]['redis']['host']}:{SECRETS[env]['redis']['port']}"
+MONGO = 'mongodb://%s:%s@%s:%s/%s' % (SECRETS[env]['mongo']['user'], SECRETS[env]['mongo']['password'], SECRETS[env]['mongo']['host'], SECRETS[env]['mongo']['port'], SECRETS[env]['mongo']['auth'])
 
 PROD_INSTALLED_APPS = [
     'app',
@@ -76,7 +77,7 @@ CACHES = {
 #LOGGING["handlers"]["mongo"] = {
 #     'level': 'INFO',
 #     'class': 'util.mongo_handler.BaseMongoLogHandler',  # 保存到文件，自动切
-#     'connection': 'mongodb://%s:%s@%s:%s/%s' % ("root", "123456", "172.17.111.237", "27017", "admin"),
+#     'connection': MONGO,
 #     'max_keep': 1, # 当输入同一个消息message的时候 保留几条
 #     'database': 'test',
 #     'collection': 'log'
