@@ -6,4 +6,4 @@ python manage.py makemigrations
 python manage.py migrate
 
 
-gunicorn -c ./gunicorn.py tutorial.wsgi:application
+gunicorn -c ./gunicorn.py main.wsgi:application

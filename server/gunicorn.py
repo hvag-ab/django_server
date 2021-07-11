@@ -80,14 +80,14 @@ logconfig_dict = {
             "maxBytes": 1024*1024*100,# 打日志的大小（此处限制100mb）
             "backupCount": 1,# 备份数量（若需限制日志大小，必须存在值，且为最小正整数）
             "formatter": "generic",# 对应formatters字典的键（key）
-            "filename": "/server/backend/django_server-main/logs/gunicorn_error.log" #若对配置无特别需求，仅需修改此路径
+            "filename": "../logs/gunicorn_error.log" #若对配置无特别需求，仅需修改此路径
         },
         "access_file": {
             "class": "logging.handlers.RotatingFileHandler",
             "maxBytes": 1024*1024*100,
             "backupCount": 1,
             "formatter": "generic",
-            "filename": "/server/backend/django_server-main/logs/gunicorn_access.log", #若对配置无特别需求，仅需修改此路径
+            "filename": "../logs/gunicorn_access.log", #若对配置无特别需求，仅需修改此路径
         },
         'console': {
             'class': 'logging.StreamHandler',
