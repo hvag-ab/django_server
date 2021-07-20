@@ -206,3 +206,17 @@ color.child_favor.clear()
 # AUTH_USER_MODEL = 'youpath.Profile'
 
 # 后续需要用到user模型 需要 使用 User = get_user_model()
+
+"""
+## 获取模型元数据
+
+
+meta = Book._meta
+
+db_table = meta.db_table
+
+model_name = str(meta)
+fields_name = meta.field.name
+field_names = [field.name for field in meta.fields]  # 模型所有字段名
+print(dir(meta))
+"""
