@@ -125,6 +125,7 @@ print(cloth.color.colors)
 2.cloth = Clothes.objects.select_related('color').filter(color__colors="red")
 print(cloth[0].description)
 3.Clothes.objects.filter(color__colors="red").values('color__colors','description'))
+4.color_obj=models.Colors.objects.get(colors="红") print(color_obj.clothes_set.all())  如果设置了related_name='hvag' print(color_obj.hvag.all())
 
 # 反向
 cloths = Clothes.objects.filter(color=Colors.objects.get(colors="红")))
