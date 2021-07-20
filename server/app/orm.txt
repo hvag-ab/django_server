@@ -1,1 +1,1246 @@
 
+
+单表
+class Colors(models.Model):
+    colors = models.CharField(max_length=10)  
+
+增加
+
+
+#create方式一:   Colors.objects.create(colors='Alvin')
+
+#create方式二:   Colors.objects.create(**{"colors":"alex"})
+
+#save方式一:     color=Colors(colors="alvin")
+                color.save()
+
+#save方式二:     color=Colors()
+                color.colors="alvin"
+                color.save()
+
+删
+
+Colors.objects.filter(id=1).delete()
+
+
+改
+
+Colors.objects.filter(colors='seven').update(colors='0')  # 将指定条件的数据更新，均支持 **kwargs
+# obj = Colors.objects.get(id=1)
+# obj.colors = '111'
+# obj.save()                                                 # 修改单条数据
+
+
+查询
+# 获取个数
+#
+# Colors.objects.filter(colors='seven').count()
+
+# 大于，小于
+#
+# Colors.objects.filter(id__gt=1)              # 获取id大于1的值
+# Colors.objects.filter(id__gte=1)              # 获取id大于等于1的值
+# Colors.objects.filter(id__lt=10)             # 获取id小于10的值
+# Colors.objects.filter(id__lte=10)             # 获取id小于10的值
+# Colors.objects.filter(id__lt=10, id__gt=1)   # 获取id大于1 且 小于10的值
+
+# in
+#
+# Colors.objects.filter(id__in=[11, 22, 33])   # 获取id等于11、22、33的数据
+# Colors.objects.exclude(id__in=[11, 22, 33])  # not in
+
+# isnull
+# Entry.objects.filter(pub_date__isnull=True)
+
+# contains
+#
+# Colors.objects.filter(name__contains="ven")
+# Colors.objects.filter(name__icontains="ven") # icontains大小写不敏感
+# Colors.objects.exclude(name__icontains="ven")
+
+
+# extra() 灵活调用实现 SQL
+Entry.objects.extra(select={'is_recent': "pub_date > '2006-01-01'"})
+Entry.objects.extra(where=["foo='a' OR bar = 'a'", "baz = 'a'"])
+Entry.objects.extra(where=['headline=%s'], params=['Lennon'])
+q.extra(order_by = ['-is_recent'])
+
+# range
+#
+# Colors.objects.filter(id__range=[1, 2])   # 范围bettwen and
+
+# sql like语句
+#Colors.objects.filter(colors__startswith="ven")   like 'ven%'
+# startswith，istartswith, endswith, iendswith,
+
+# order by
+#
+# Colors.objects.filter(colors='seven').order_by('id')    # asc
+# Colors.objects.filter(colors='seven').order_by('-id')   # desc
+# Colors.objects.filter(colors='seven').order_by('?')[:20]   # 随机前20条
+
+
+# limit 、offset
+#
+# Colors.objects.all()[10:20]
+
+# regex正则匹配，iregex 不区分大小写
+#
+# Entry.objects.get(title__regex=r'^(An?|The) +')
+# Entry.objects.get(title__iregex=r'^(an?|the) +')
+
+# date
+# dates() 获得结果集中的时间列表(字段,精确度), 如 datetime.date(2005, 1, 1)
+Entry.objects.dates('pub_date', 'day', order='DESC')
+#
+# Entry.objects.filter(pub_date__date=datetime.date(2005, 1, 1))
+# Entry.objects.filter(pub_date__date__gt=datetime.date(2005, 1, 1))
+
+# year
+#
+# Entry.objects.filter(pub_date__year=2005)
+# Entry.objects.filter(pub_date__year__gte=2005)
+
+# month
+#
+# Entry.objects.filter(pub_date__month=12)
+# Entry.objects.filter(pub_date__month__gte=6)
+
+# day
+#
+# Entry.objects.filter(pub_date__day=3)
+# Entry.objects.filter(pub_date__day__gte=3)
+
+# week_day
+#
+# Entry.objects.filter(pub_date__week_day=2)
+# Entry.objects.filter(pub_date__week_day__gte=2)
+
+# hour
+#
+# Event.objects.filter(timestamp__hour=23)
+# Event.objects.filter(time__hour=5)
+# Event.objects.filter(timestamp__hour__gte=12)
+
+# minute
+#
+# Event.objects.filter(timestamp__minute=29)
+# Event.objects.filter(time__minute=46)
+# Event.objects.filter(timestamp__minute__gte=29)
+
+# second
+#
+# Event.objects.filter(timestamp__second=31)
+# Event.objects.filter(time__second=2)
+# Event.objects.filter(timestamp__second__gte=31)
+
+# 返回空queryset
+#Colors.objects.none()
+
+
+# 将 qs1 和 qs2、qs3 联接组合起来
+qs1.union(qs2, qs3)
+# 取结果集的交集, 共同的部分
+qs1.intersection(qs2, qs3)
+# 取结果集的差集, 仅在 qs1 中有的
+qs1.difference(qs2, qs3)
+
+# 指定取出信息, 提高性能, 可同时使用
+Entry.objects.defer("des", "body") # 除了这两个字段
+Person.objects.only("name") # 只取此字段
+# 使用指定的数据库
+Entry.objects.using('db2')
+
+# 联合使用
+Entry.objects.filter().exclude().get()
+
+
+# 迭代
+for e in Item.objects.all():#不支持缓存
+    print(e.title)
+
+for e in Item.objects.all().itersize():#支持缓存
+    print(e.title)
+
+
+ # 输出解释信息 explain
+print(Blog.objects.filter(title='My Blog').explain(verbose=True))
+
+
+# 转为列表
+list(my_queryset.all())
+
+# 是否存在查询结果
+my_queryset.filter(pk=entry.pk).exists()
+
+# 获取指定一条结果
+my_queryset.first() # 第一个结果
+my_queryset.last() # 最后一个结果, 另有 latest() earliest()
+
+# 排序
+my_queryset.filter.order_by('-pub_date', 'age') # 负号表示降序
+my_queryset.order_by('?') # 随机排序
+my_queryset.order_by('blog__name', 'title') # blog__name 中 blog 为外键
+my_queryset.order_by('title').order_by('pub_date') # 两次排序
+my_queryset.reverse() # 按相反的顺序返回
+# 去重
+my_queryset.distinct()
+# 结果数
+my_queryset.count()
+# 给定列表对应字段的结果, 默认为主键
+my_queryset.in_bulk([1, 2])
+my_queryset.in_bulk(['lily', 'tom'], field_colors='name')
+# 返回指定字段值, 类 json [{},{}]
+my_queryset.values() # 返回所有字段
+my_queryset.values('blog_id') # blog 为外键, 返回 key 为 blog_id
+my_queryset.values('id', 'name')
+from django.db.models.functions import Lower
+my_queryset.values(lower_colors=Lower('name')) # 字段名指定, 值转小写
+# 返回指定字段值, 类 list [(),()]
+my_queryset.values_list() # 返回所有字段
+my_queryset.values_list('id', flat=True) # 单个字段返回此字段所有值组成的列表
+my_queryset.values_list('id', 'title', named=True) # 返回一个 namedtuple
+# 获取时间列表, datetimes() 类似
+my_queryset.dates('pub_date', 'day', order='DESC') # 逻辑使用同上文
+
+# Q 对象, 与字段查询同时时放在前
+from django.db.models import Q
+Model.objects.filter(x=1, y=2) #  字段查询方法
+Model.objects.filter(Q(x=1) & Q(y=2)) # AND
+Model.objects.filter(Q(x=1, z=4) | Q(y=2)) # OR
+Model.objects.filter(~Q(colors="cox")) # NOT
+Q(question__startswith='Who') | Q(question__startswith='What')
+Q(question__startswith='Who') | ~Q(pub_date__year=2005)
+
+Poll.objects.get(
+　　Q(question__startswith='Who'),
+　　Q(pub_date=date(2005, 5, 2)) | Q(pub_date=date(2005, 5, 6))
+)
+... 大体上可以翻译成这个SQL：
+
+SELECT * from polls WHERE question LIKE 'Who%'
+AND (pub_date = '2005-05-02' OR pub_date = '2005-05-06')
+
+# F 表达式, 与字段查询同时时放在前
+from django.db.models import F
+
+Reporter.objects.all().update(stories_filed=F('stories_filed') + 1)
+F()表达式的效率上的优点主要体现在：直接通过数据库操作而不是Python；减少数据库查询次数。
+
+
+#批量更新
+objs = [
+Entry.objects.create(headline='Entry 1'),
+Entry.objects.create(headline='Entry 2'),
+... ]
+objs[0].headline = 'This is entry 1'
+objs[1].headline = 'This is entry 2'
+Entry.objects.bulk_update(objs, ['headline'])
+
+# 批量插入
+# batch_size表示一次插入的个数
+objs = [
+    models.DDD(colors='r11'),
+    models.DDD(colors='r22')
+]
+models.DDD.objects.bulk_create(objs, 10)
+
+# 如果存在，则获取，否则，创建
+# defaults 指定创建时，其他字段的值
+obj, created = models.UserInfo.objects.get_or_create(usercolors='root1', defaults={'email': '1111111','u_id': 2, 't_id': 2})
+
+
+# 如果存在，则更新，否则，创建
+# defaults 指定创建时或更新时的其他字段
+obj, created = models.UserInfo.objects.update_or_create(usercolors='root1', defaults={'email': '1111111','u_id': 2, 't_id': 1})
+
+# extra
+# 构造额外的查询条件或者映射，如：子查询
+
+Entry.objects.extra(select={'new_id': "select col from sometable where othercol > %s"}, select_params=(1,))
+Entry.objects.extra(where=['headline=%s'], params=['Lennon'])
+Entry.objects.extra(where=["foo='a' OR bar = 'a'", "baz = 'a'"])
+Entry.objects.extra(select={'new_id': "select id from tb where id > %s"}, select_params=(1,), order_by=['-nid'])
+
+Goods.objects.all().extra(
+select={'reputation': 'shop.reputation'},
+tables=['shop'],
+where=['goods.shop_id=shop.id']
+)
+.order_by(['-num', '-reputation'])
+.values('id', 'num', 'reputation')
+
+
+# 执行原生SQL
+models.UserInfo.objects.raw('select * from userinfo')
+
+# 如果SQL是其他表时，必须将名字设置为当前UserInfo对象的主键列名
+models.UserInfo.objects.raw('select id as nid from 其他表')
+
+# 为原生SQL设置参数
+models.UserInfo.objects.raw('select id as nid from userinfo where nid>%s', params=[12,])
+
+# 将获取的到列名转换为指定列名
+name_map = {'first': 'first_name', 'last': 'last_name', 'bd': 'birth_date', 'pk': 'id'}
+Person.objects.raw('SELECT * FROM some_other_table', translations=name_map)
+
+# 指定数据库
+models.UserInfo.objects.raw('select * from userinfo', using="default")
+
+# 获取sql 语句 和 参数
+>> qs = qs.filter(sold_at__lt=timezone.now())
+>>> sql, params = qs.query.sql_with_params()
+
+
+聚合
+aggregate(*args,*kwargs)*
+from django.contrib.auth.models import User
+from django.db.models import (
+    Count,
+    Sum,
+    Case,
+    When,
+    Value,
+    IntegerField,Avg,Max,Min
+)
+
+value = Book.objects.aggregate(Avg('price'))
+{'price__avg': 148.85185185185185}
+
+value = Book.objects.aggregate(avgPrice=Avg('price'))
+{'avgPrice': 148.85185185185185}
+
+value = Book.objects.aggregate(Avg('price'),Max('price'),Min('price'),Count('price'))
+{'price__avg': 148.85185185185185, 'price__max': Decimal('296.00'), 'price__min': Decimal('23.00')}
+
+User.objects.aggregate(total=Count('id'))
+sql:
+SELECT
+    COUNT(id) as total
+FROM
+    auth_user;
+
+# case when
+User.objects.aggregate(
+    total_users=Count('id'),
+    total_active_users=Sum(Case(
+        When(is_active=True, then=Value(1)),
+        default=Value(0),
+        output_field=IntegerField(),
+    )),
+)
+SELECT
+    COUNT(id) AS total_users,
+    SUM(CASE WHEN is_active THEN 1 ELSE 0 END) AS total_active_users
+FROM
+    auth_users;
+
+#分组Group By
+
+User.objects.values('is_active').annotate(total=Count('id'))
+
+SELECT
+    is_active,
+    COUNT(id) AS total
+FROM
+    auth_user
+GROUP BY
+    is_active
+
+# where 条件
+User.objects.values('is_active').filter(is_staff=True).annotate(total=Count('id'))
+SELECT
+    is_active,
+    COUNT(id) AS total
+FROM
+    auth_user
+WHERE
+    is_staff = True
+GROUP BY
+    is_active
+
+# orderby
+User.objects.values('is_active').annotate(total=Count('id')).order_by('is_active', 'total')
+SELECT
+    is_active,
+    COUNT(id) AS total
+FROM
+    auth_user
+GROUP BY
+    is_active
+ORDER BY
+    is_active,
+    total
+
+#多个聚合字段
+User.objects.values('is_active').annotate(
+    total=Count('id'),
+    last_joined=Max('date_joined'),
+)
+SELECT
+    is_active,
+    COUNT(id) AS total,
+    MAX(date_joined) AS last_joined
+FROM
+    auth_user
+GROUP BY
+    is_active
+
+# group by 多字段
+User.objects.values('is_active', 'is_staff').annotate(total=Count('id'))
+SELECT
+    is_active,
+    is_staff,
+    COUNT(id) AS total
+FROM
+    auth_user
+GROUP BY
+    is_active,
+    is_staff
+
+# group by 表达式
+User.objects.values('date_joined__year').annotate(total=Count('id'))
+SELECT
+    EXTRACT('year' FROM date_joined),
+    COUNT(id) AS total
+FROM
+    auth_user
+GROUP BY
+    EXTRACT('year' FROM date_joined)
+
+from django.db.models import (
+    ExpressionWrapper,
+    Q, F, BooleanField,
+)
+
+User.objects
+.annotate(
+    logged_since_joined=ExpressionWrapper(
+        Q(last_login__gt=F('date_joined')),
+        output_field=BooleanField(),
+    )
+)
+.values('logged_since_joined')
+.annotate(total=Count('id'))
+.values('logged_since_joined', 'total')
+
+SELECT
+  last_login > date_joined AS logged_since_joined,
+  COUNT(id) AS total
+FROM
+  auth_user
+GROUP BY
+  last_login > date_joined
+
+# 条件聚合
+User.objects
+.values('date_joined__year')
+.annotate(
+    staff_users=(
+        Count('id', filter=Q(is_staff=True))
+    ),
+    non_staff_users=(
+        Count('id', filter=Q(is_staff=False))
+    ),
+)
+
+SELECT
+    EXTRACT('year' FROM date_joined),
+
+    COUNT(id) FILTER (
+        WHERE is_staff = True
+    ) AS staff_users,
+
+    COUNT(id) FILTER (
+        WHERE is_staff = False
+    ) AS non_staff_users
+
+FROM
+    auth_user
+GROUP BY
+    EXTRACT('year' FROM date_joined)
+
+# having
+User.objects
+.annotate(year_joined=F('date_joined__year'))
+.values('is_active')
+.annotate(total=Count('id'))
+.filter(total__gt=100)
+
+SELECT
+    is_active,
+    COUNT(id) AS total
+FROM
+    auth_user
+GROUP BY
+    is_active
+HAVING
+    COUNT(id) > 100
+
+# Distinct
+User.objects
+.values('is_active')
+.annotate(
+    total=Count('id'),
+    unique_names=Count('last_name', distinct=True),
+)
+
+SELECT
+    is_active,
+    COUNT(id) AS total,
+    COUNT(DISTINCT last_name) AS unique_names
+FROM
+    auth_user
+GROUP BY
+    is_active
+
+User.objects
+.values('is_active')
+.annotate(
+    total=Count('id'),
+    unique_names=Count('last_name', distinct=True),
+)
+.annotate(pct_unique_names=(
+    Cast('unique_names', FloatField())
+    / Cast('total', FloatField())
+)
+
+SELECT
+    is_active,
+    COUNT(id) AS total,
+    COUNT(DISTINCT last_name) AS unique_names,
+    (COUNT(DISTINCT last_name)::float
+        / COUNT(id)::float) AS pct_unique_names
+FROM
+    auth_user
+GROUP BY
+    is_active
+
+# 外键关联
+User.objects
+.values('user_profile__type')
+.annotate(total=Count('id'))
+
+SELECT
+    p.type,
+    COUNT(u.id) AS total
+FROM
+    auth_user u
+    JOIN user_profile p ON u.id = p.user_id
+GROUP BY
+    p.type
+
+# 多对多外键关联
+User.objects
+.annotate(memberships=Count('groups'))
+.values('id', 'memberships')
+
+SELECT
+    u.id,
+    COUNT(ug.group_id) AS memberships
+FROM
+    auth_user
+    LEFT OUTER JOIN auth_user_groups ug ON (
+        u.id = ug.user_id
+    )
+GROUP BY
+    u.id
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class Colors(models.Model):
+    colors=models.CharField(max_length=10) #蓝色
+
+
+class Ball(models.Model):
+    color=models.OneToOneField("Colors",on_delete=models.DO_NOTHING,related_colors="ball")  #与颜色表为一对一，颜色表为母表
+    description=models.CharField(max_length=10) #描述
+
+
+class Clothes(models.Model):
+    color=models.ForeignKey("Colors" on_delete=models.DO_NOTHING)   #与颜色表为外键，颜色表为母表 一对多
+    description=models.CharField(max_length=10) #描述
+
+
+class Child(models.Model):
+    colors=models.CharField(max_length=10)   #姓名
+    favor=models.ManyToManyField('Colors')    #与颜色表为多对多
+
+
+
+
+
+
+一对一
+
+查询
+
+
+#子表查询母表,找到红球对应的颜色
+#写法1：
+print(models.Ball.objects.get(description="红球").color.colors)  #返回红，通过子表查询母表，写法："子表对象.母表表名的小写.母表字段名" ；通过Ball表查到description为"红球"，查找到对应colors
+#写法2，反向从母表入手：
+print(models.Colors.objects.get(ball__description="红球").colors) #返回红，通过子表查询母表，但形式上是从母表对象自身直接获取字段，写法："母表.objects.get(子表名小写__子表字段="xxx").母表字段名" ；效果和上边完全一致，另一种形式
+
+
+#母表查询子表，找到红色对应的球的名字
+#写法1：
+print(models.Colors.objects.get(colors="红").ball.description)  #返回红球，通过母表查询子表，写法："母表对象.子表表名的小写.子表字段名"；找到颜色为红色的Ball的description
+#写法2，反向从子表入手：
+print(models.Ball.objects.get(color__colors="红").description)  #返回红球，通过母表查询子表，但形式上是从子表对象自身直接获取字段，写法："子表.objects.get(一对一的子表字段__母表字段="xxx").子表字段"；效果和上边完全一致，另一种形式
+
+
+排序
+子表按照目表的id 倒序
+models.Ball.objects.order_by('-color__id').all()
+母表按照子表的id 倒序
+models.Color.objects.order_by('-ball__id').all()# ball是relate_name
+
+增
+#增添数据的三种写法：
+#写法1：
+color_obj=models.Colors.objects.create(colors="黑")
+models.Ball.objects.create(color=color_obj,description="黑球")
+#写法1补充：
+color_id=models.Colors.objects.create(colors="黑").id
+models.Ball.objects.create(color_id=color_id,description="黑球")
+#写法2：
+color_obj=models.Colors.objects.create(colors="黑")
+ball_obj=models.Ball(color=color_obj,description="黑球")
+ball_obj.save()
+#写法3(字典导入)：
+color_obj=models.Colors.objects.create(colors="黑")
+ball_dic={'description':"黑球"}
+models.Ball.objects.create(color=color_obj,**ball_dic)
+
+改
+
+#写法1：
+models.Ball.objects.filter(color__colors="红").update(description="灰球")
+#写法2：
+up_dic={"description":"灰球"}
+models.Ball.objects.filter(id__gt=0).update(**up_dic)
+
+models.Colors.filter(ball__description='黑色').update(colors='紫色')
+
+删
+
+models.Ball.objects.get(description="灰球").delete() #对象和QuerySet都有方法delete()
+models.Colors.objects.filter(colors="灰").delete()
+
+models.Colors.objects.all().delete() #清空一张表
+
+
+一对多
+
+查询
+
+你可以通过在ForeignKey()和ManyToManyField()的定义中设置 related_name 的值来覆写 FOO_set 的名称 设置了related_name时，查询调用时，就必须用related_name的值。
+
+#外键表联合查询：
+
+#外键子表查询母表,与一对一子表查询母表形式一致
+#找到红裤衩所属的颜色表中的颜色--返回:红
+#写法1：
+print(models.Clothes.objects.get(description="小虎哥").color.colors)  #返回红，通过子表查询母表，写法："子表对象.母表表名的小写.母表字段名" ；通过Clothes表查到description为"小虎哥"，查找到对应colors
+#写法2，反向从母表入手：
+print(models.Colors.objects.get(clothes__description="小虎哥").colors)  #返回红，通过子表查询母表，但形式上是从母表对象自身直接获取字段，写法："母表.objects.get(子表名小写__子表字段="xxx").母表字段名" ；效果和上边完全一致，另一种形式
+
+#外键母表查询子表,与一对一形式不同，因为母表为"多"，不能像一对一一样通过.get().子表.子表字段的方式获取，但与多对多母表查询子表一致
+#找到颜色为红的所有服装--返回:[<Clothes: 大美女>, <Clothes: 小虎哥>]
+#写法1：
+color_obj=models.Colors.objects.get(colors="红")
+print(color_obj.clothes_set.all())  #注意：子表小写_set的写法,它实际上是一个QuerySet,可以用update,delete,all,filter等方法
+如果设置了related_colors='hvag'
+print(color_obj.hvag.all())
+#写法2：
+print(models.Clothes.objects.filter(color=models.Colors.objects.get(colors="红")))
+#写法2简便写法（推荐）：
+print(models.Clothes.objects.filter(color__colors="红"))  #写法：filter(子表外键字段__母表字段='过滤条件')
+#写法3：
+color_id=models.Colors.objects.get(colors="红").id  #通过母表获取到颜色为红的id
+print(models.Clothes.objects.filter(color_id=color_id))  #filter得到QuerySet,写法：filter(子表外键字段_母表主键=母表主键对象)
+
+补充
+models.Clothes.objects.filter(color=models.Colors.objects.get(colors="红")).values('color__colors','description')  #获取子表的description字段，和母表的colors字段，获取母表字段写法: 子表外键字段名__母表字段名--适用于values()或filter()
+#简写形式补充：
+models.Clothes.objects.filter(color__colors="红").values('color__colors','description')
+#返回：
+[{'description': u'\u7ea2\u5185\u8863', 'color__colors': u'\u7ea2'}, {'description': u'\u7ea2\u5185\u88e4', 'color__colors': u'\u7ea2'}]
+#如果不加values(),返回的是[<Clothes: 大美女>, <Clothes: 小虎哥>]这样一个QuerySet集合，通过values可以形成一个列表，列表中的每一个元素是一个字典，可以通过list()将ValuesQeurySet转化为列表，之后返回给templates
+
+#另外可通过.values_list()将QuerySet转化为ValuesListQuerySet。返回：[(u'\u7ea2', u'\u7ea2\u889c\u5b50'), (u'\u7ea2', u'\u7ea2\u889c\u5b50')]
+models.Colors.objects.fiter(color='黑色').values_list('clothes__color','clothes__description')
+注意：如果定义了related_name
+color=models.ForeignKey("Colors" on_delete=models.DO_NOTHING,ralated_colors='hvag')
+models.Colors.objects.fiter(color='黑色').values_list('hvag__color','hvag__description')
+
+
+
+#得到的是一个列表，列表中是多个元组，每个元组是ValuesQuerySet中字典的value，常用于从models里将数据取出后动态添加到前端模板中的select选项中。
+#通过forms.py从models取值传给前端select选项，需重启django后，select选项才能更新，可在定义form时，添加如下关键字保障动态更新select选项
+#forms.py
+from django import forms
+from test1 import models
+class ClothesForm(forms.Form):
+    color=forms.IntegerField(required=True,widget=forms.Select(),)
+    def __init__(self,*args,**kwargs):  #定义这个关键字段，当使用form时，colors表新增了颜色，前端ClothesForm的color字段的选项会自动更新
+        super(ClothesForm, self).__init__(*args,**kwargs)
+        self.fields['color'].widget.choices=models.Colors.objects.all().order_by('id').values_list('id','colors')
+
+
+增
+
+#增添子表数据，形式与一对一一致
+#添加颜色为绿的服装：小帅哥
+#方法1：
+models.Clothes.objects.create(color=models.Colors.objects.get(colors="绿"),description="小帅哥")
+#方法1补充：
+models.Clothes.objects.create(color_id=models.Colors.objects.get(colors="绿").id,description="小帅哥")
+#方法2：
+c_obj=models.Clothes(color=models.Colors.objects.get(colors="绿"),description="小帅哥")
+c_obj.save()
+#方法3：字典方式录入..参考一对一
+
+改
+
+#颜色为红的服装，description都更新为大美女
+#写法1：
+models.Clothes.objects.filter(color__colors="红").update(description="大美女")
+#写法2：
+models.Clothes.objects.filter(color_id=models.Colors.objects.get(colors="红").id).update(description="大美女")
+#写法3：
+colors_obj=models.Colors.objects.get(colors="红")
+colors_obj.clothes_set.filter(id__gte=1).update(description="大美女")
+#其他写法参照一对一的修改和外键的查询
+
+删
+
+models.Clothes.objects.get(description="灰裙子").delete() #对象和QuerySet都有方法delete()
+models.Colors.objects.filter(colors="灰").delete()
+
+
+多对多
+
+查询
+
+
+#多对多子表查询母表,查找小明喜欢哪些颜色--返回:[<Colors: 红>, <Colors: 黄>, <Colors: 蓝>]
+#与一对多子表查询母表的形式不同，因为一对多，查询的是母表的“一”；多对多，查询的是母表的“多”
+#写法1：
+child_obj=models.Child.objects.get(colors="小明")  #写法：子表对象.子表多对多字段.过滤条件(all()/filter())
+print(child_obj.favor.all())
+#写法2，反向从母表入手：
+print(models.Colors.objects.filter(child__colors="小明")) #母表对象.filter(子表表名小写__子表字段名="过滤条件")
+
+
+#多对多母表查询子表,查找有哪些人喜欢黄色--返回:[<Child: 小明>, <Child: 丫蛋>]
+#与一对多母表查询子表的形式完全一致，因为查到的都是QuerySet，一对多和多对多，都是在查询子表的“多”
+#写法1：
+color_obj=models.Colors.objects.get(colors="黄")
+print(color_obj.child_set.all())
+#写法2：
+print(models.Child.objects.filter(favor=models.Colors.objects.get(colors="黄")))
+#写法2简便写法(推荐):
+print(models.Child.objects.filter(favor__colors="黄"))  #写法：filter(子表外键字段__母表字段='过滤条件')
+#写法3：
+color_id=models.Colors.objects.get(colors="黄").id  #通过母表获取到颜色为红的id
+print(models.Child.objects.filter(favor=color_id))  #filter得到QuerySet,写法：filter(子表外键字段=母表主键对象),此处和一对多略有不同，是子表外键字段而不是外键字段_母表主键
+
+
+增和改
+
+#添加子表关联关系
+#添加小虎并让他喜欢所有颜色
+#写法1：
+child_obj=models.Child.objects.create(colors="小虎")  #如果是已有用户，使用.get()
+colors_obj=models.Colors.objects.all()  #创建颜色表的所有颜色QuerySet对象
+child_obj.favor.add(*colors_obj)  #添加对应关系,将小虎和所有颜色进行关联，写法：子表对象.子表多对多字段.add(*QuerySet对象)
+#写法2：
+child_obj=models.Child.objects.get(colors="小虎")
+colors_obj=models.Colors.objects.all()
+child_obj.favor=colors_obj
+child_obj.save()
+#让小虎喜欢黄色和蓝色(2种写法和上边一致，只展示一种写法)
+child_obj=models.Child.objects.get(colors="小虎")
+colors_obj=models.Colors.objects.filter(colors__in=["蓝","黄"])  #models默认只能用这种方式得到并集，如需更复杂的过滤逻辑，需使用模块Q
+child_obj.favor.clear()  #清空小虎已经喜欢的颜色
+child_obj.favor.add(*colors_obj)  #add是追加模式，如果当前小虎已经喜欢绿色，那么执行后，小虎会额外喜欢蓝，黄
+#让小虎喜欢绿色(2种写法和上边一致，只展示一种写法)
+child_obj=models.Child.objects.get(colors="小虎")
+colors_obj=models.Colors.objects.get(colors="绿")
+child_obj.favor.clear()
+child_obj.favor.add(colors_obj)  #此处没有*
+
+
+#添加母表关联关系
+#让喜欢蓝色的人里添加小虎,可以用上边的方法，一个效果，让小虎喜欢蓝色，下边介绍反向插入(从母表入手)的写法
+child_obj=models.Child.objects.get(colors="小虎")
+colors_obj=models.Colors.objects.get(colors="蓝")
+colors_obj.child_set.add(child_obj)  #从colors表插入小虎，写法：母表对象.子表名小写_set.add(子表对象)。 让喜欢蓝色的child_set集合添加colors="小虎"
+#让所有人都喜欢蓝色
+children_obj=models.Child.objects.all()
+colors_obj=models.Colors.objects.get(colors="蓝")
+colors_obj.child_set.add(*children_obj)
+#关于_set写法，是否已经有些晕了，究竟什么时候使用_set,简单记忆，只有子表才有"子表名小写_set"的写法，得到的是一个QuerySet集合，后边可以接.add(),.remove(),.update(),.delete(),.clear()
+#另外备注一下，colors_obj.child_set.clear()是让所有人喜欢的颜色里去掉蓝色，colors_obj.child_set.all().delete()是删除.child_set的所有人
+
+
+删除多对多关系
+
+#删除子表与母表关联关系
+#让小虎不喜欢任何颜色
+#写法1：
+child_obj=models.Child.objects.get(colors="小虎")
+colors_obj=models.Colors.objects.all()
+child_obj.favor=''
+child_obj.save()
+#写法2：
+child_obj=models.Child.objects.get(colors="小虎")
+colors_obj=models.Colors.objects.all()
+child_obj.favor.remove(*colors_obj)
+#写法3：
+child_obj=models.Child.objects.get(colors="小虎")
+child_obj.favor.clear()
+#其他例子参照多对多的增与改案例，这里不做举例
+
+#删除母表与子表关联关系
+#让所有人不再喜欢蓝色
+#写法1：
+children_obj=models.Child.objects.all()
+colors_obj=models.Colors.objects.get(colors="蓝")
+colors_obj.child_set.remove(*children_obj)
+#写法2：
+colors_obj=models.Colors.objects.get(colors="蓝")
+colors_obj.child_set.clear()
+
+删除多对多表
+
+#删除子表数据
+#喜欢蓝色的所有人都删掉
+colors_obj=models.Colors.objects.get(colors="蓝")
+colors_obj.child_set.all().delete()  #注意有.all()
+#删除所有child
+models.Child.objects.all().delete()
+
+删除母表数据:
+
+默认情况下，如此例中，删除“红”色，那么子表与颜色表是一对一或外键关系的，子表对应数据会自动删除，如：红球，小虎哥
+与颜色表是多对多关系的话，不会自动删除喜欢红色的人，而是去掉红色已选
+如果想让与母表外键关联的子表在删除外键之后依旧可以保留子表数据，需要子表建表时加入以下字段：
+class Clothes(models.Model):
+    color=models.ForeignKey("Colors",null=True,on_delete=models.SET_NULL))  #可为空，如果外键被删后，子表数据此字段置空而不是直接删除这条数据，同理也可以SET_DEFAULT,需要此字段有默认值
+    description=models.CharField(max_length=10)  #描述
+
+
+choice
+
+#choices相当于实现一个简化版的外键，外键的选项不能动态更新，如可选项目较少，可以采用
+#先在models添加choices字段
+class Child(models.Model):
+    sex_choice=((0,"男"),(1,"女"))
+    colors=models.CharField(max_length=10)  #姓名
+    favor=models.ManyToManyField('Colors')    #与颜色表为多对多
+    sex=models.IntegerField(choices=sex_choice,default=0)
+    def __unicode__(self):
+        return self.name
+
+#在views.py中调用
+child_obj=models.Child.objects.get(colors="小虎")
+print(child_obj.sex)  #返回0或1
+print(child_obj.get_sex_display())  #返回男或女  get_choice字段名_display形式
+
+
+select_related
+
+
+ obj=models.Colors.objects.select_related().filter(colors='黑色').first()
+ b=obj.clothes_set.all()
+ for i in b:
+     print(i.description)
+
+
+cloth = Clothes.objects.select_related('color').filter(pk=1)
+print(cloth.color.colors)
+
+
+一. 使用标准数据库优化技术¶
+
+1.索引。从概要分析确定应添加哪些索引之后，这是第一要务。使用 Meta.indexes或 Field.db_index从Django添加它们。
+考虑添加索引字段您经常查询中使用 filter()， exclude()， order_by()等为指标，可能有助于加速查找。
+请注意，确定最佳索引是一个复杂的数据库相关主题，将取决于您的特定应用程序。维护索引的开销可能超过查询速度的任何收益。
+2. 适当使用字段类型。char varchar 等
+3. 数据库视图  对于复杂的查询 可以建立视图 来简化查询 提高速度  当然 数据库维护成本会增加
+
+
+二。QuerySet 优化
+
+1.QuerySets懒惰¶
+QuerySets是懒惰的-创建a的行为 QuerySet不涉及任何数据库活动。一起整天可以叠加滤镜和Django将不实际运行查询，直到QuerySet被 评估。看一下这个例子：
+
+>>> q = Entry.objects.filter(headline__startswith="What")
+>>> q = q.filter(pub_date__lte=datetime.date.today())
+>>> q = q.exclude(body_text__icontains="food")
+>>> print(q)
+尽管这看起来像是三个数据库命中，但实际上它仅在数据库的最后一行（print(q)）命中一次。通常，QuerySet直到您“询问” a的结果后，
+才从数据库中获取它们的结果
+
+2.缓存的属性¶
+
+>>> entry = Entry.objects.get(id=1)
+>>> entry.blog   # Blog object is retrieved at this point
+>>> entry.blog   # cached version, no DB access
+
+all 方法不缓存属性
+>>> entry = Entry.objects.get(id=1)
+>>> entry.authors.all()   # query performed
+>>> entry.authors.all()   # query performed again
+
+使用iterator()¶
+当您有很多对象时，存行为QuerySet会导致使用大量内存。在这种情况下， iterator()可能会有所帮助。如果你只需要进行一次的循环，那么其实并不需要缓存，这个使用就可以使用iterat
+for book in Books.objects.all().iterator():
+  do_stuff(book)
+
+
+# Example 2: Good  调用缓存
+article_list = Article.objects.filter(title__contains="django")
+for article in article_list:
+    print(article.title)
+
+# Example 3: Bad  不调用缓存
+for article in Article.objects.filter(title__contains="django"):
+    print(article.title)
+
+
+
+ article_list = Article.objects.filter(title__contains="django")
+if article_list:
+    for article in article_list:
+        print(article.title)
+else:
+    print("No records")
+但有时我们只希望了解查询的结果是否存在，而不需要使用整个数据集，这时if触发整个queryset的缓存变成了一件坏事情。哎，程序员要担心的事情着不少。这时你可以用exists()方法。与if判断不同，exists只会检查查询结果是否存在，返回True或False，而不会缓存article_list(见例5）。
+
+# Example 5: Good
+article_list = Article.objects.filter(title__contains="django")
+if article_list.exists():
+    print("Records found.")
+else:
+    print("No records")
+注意: 判断查询结果是否存在到底用if还是exists取决于你是否希望缓存查询数据集复用，如果是用if，反之用exists。
+Article.objects.filter(title__contains="django").exists()
+
+
+统计查询结果数量优选count方法
+
+len()与count()均能统计查询结果的数量。一般来说count更快，因为它是从数据库层面直接获取查询结果的数量，而不是返回整个数据集，
+而len会导致queryset的执行，需要将整个queryset载入内存后才能统计其长度。但事情也没有绝对，如果数据集queryset已经在缓存里了，使用len更快，
+因为它不需要跟数据库再次打交道。
+
+
+下面三个例子中，只有例7最差，尽量不要用。
+
+# Example 6: Good
+count = Article.objects.filter(title__contains="django").count()
+
+# Example 7:Bad
+count = Article.objects.filter(title__contains="django").len()
+
+# Example 8: Good
+article_list = Article.objects.filter(title__contains="django")
+if article_list:
+    print("{} records found.".format(article_list.len()))
+
+
+ # Example 9: Good
+article_list = Article.objects.filter(title__contains="django").values('title')
+if article_list:
+    print(article.title)
+
+
+article_list = Article.objects.filter(title__contains="django").values_list('id', 'title')
+if article_list:
+    print(article.title)
+注意: values和values_list返回的是字典形式字符串数据，而不是对象集合。如果不理解请不要乱用。
+
+
+更新数据库部分字段请用update方法
+
+如果需要对数据库中的某条已有数据或某些字段进行更新，更好的方式是用update，而不是save方法。我们现在可以对比下面两个案例。
+例10中需要把整个Article对象的数据(标题，正文.....)先提取出来，缓存到内存中，变更信息后再写入数据库。而例11直接对标题做了更新，
+不需要把整个文章对象的数据载入内存，显然更高效。尽管单篇文章占用内存不多，但是万一用户非常多呢，那么占用的内存加起来也是很恐怖的。
+
+# Example 10: Bad
+article = Article.objects.get(id=10)
+Article.title = "Django"
+article.save()
+
+# Example 11: Good
+Article.objects.filter(id=10).update(title='Django')
+update方法还会返回已更新条目的数量，这点也非常有用。当然事情也没有绝对，save方法对于单个模型的更新还是很有优势的，比如save(commit=False), article.author = request.user等等事情update都做不来。
+
+
+专业地使用explain方法
+
+Django 2.1中QuerySet新增了explain方法，可以统计一个查询所消耗的执行时间。这可以帮助程序员更好地优化查询结果。
+
+print(Blog.objects.filter(title='My Blog').explain(verbose=True))
+
+# output
+Seq Scan on public.blog  (cost=0.00..35.50 rows=10 width=12) (actual time=0.004..0.004 rows=10 loops=1)
+  Output: id, title
+  Filter: (blog.title = 'My Blog'::bpchar)
+Planning time: 0.064 ms
+Execution time: 0.058 ms
+
+
+如果需要查询对象的外键，则使用外键字段而不是使用关联的外键的对象的主键；
+例子：
+
+a.b_id # 正确
+a.b.id # 错误
+
+在通过all语句查询时，不要做跨表查询，只查询当前表中有的数据，否则查询语句的性能会下降很多;
+ 比如：a表存在外键b表
+a.b.all() # 错误
+
+如果想要查询其他表的数据，则加上select_related(ForeignKey字段名，其实就是主动联表查询，性能也会下降)，如果有多个，则在括号中加上；
+
+加only参数是从查询结果中只取某个字段,而另外一个defer方法则是从查询结果中排除某个字段；
+
+在任何位置使用QuerySet.exists()或者QuerySet.count()都会导致额外的查询；
+
+
+批量创建¶
+创建对象时，请尽可能使用该 bulk_create()方法减少SQL查询的数量。例如：
+
+Entry.objects.bulk_create([
+    Entry(headline='This is a test'),
+    Entry(headline='This is only a test'),
+])
+……优于：
+
+Entry.objects.create(headline='This is a test')
+Entry.objects.create(headline='This is only a test')
+
+
+批量插入¶
+将对象插入时ManyToManyFields，可add()与多个对象一起使用 以减少SQL查询的数量。例如：
+
+my_band.members.add(me, my_friend)
+……优于：
+
+my_band.members.add(me)
+my_band.members.add(my_friend)
+
+select_related
+
+class Province(models.Model):
+    name = models.CharField(max_length=10)
+class City(models.Model):
+    name = models.CharField(max_length=5)
+    province = models.ForeignKey(Province)#province是字段名
+class Person(models.Model):
+    firstname  = models.CharField(max_length=10)
+    lastname   = models.CharField(max_length=10)
+    visitation = models.ManyToManyField(City, related_name = "visitor")
+    hometown   = models.ForeignKey(City, related_name = "birth")
+    living     = models.ForeignKey(City, related_name = "citizen")
+
+
+
+select_related()
+对于一对一字段（OneToOneField）和外键字段（ForeignKey），可以使用select_related 来对QuerySet进行优化
+
+
+
+作用和方法
+
+在对QuerySet使用select_related()函数后，Django会获取相应外键对应的对象，从而在之后需要的时候不必再查询数据库了。以上例说明，如果我们需要打印数据库中的所有市及其所属省份，最直接的做法是：
+
+[python] view plain copy
+>>> citys = City.objects.all()
+>>> for c in citys:
+...   print c.province
+...
+这样会导致线性的SQL查询，如果对象数量n太多，每个对象中有k个外键字段的话，就会导致n*k+1次SQL查询。在本例中，因为有3个city对象就导致了4次SQL查询：
+[sql] view plain copy
+SELECT `QSOptimize_city`.`id`, `QSOptimize_city`.`name`, `QSOptimize_city`.`province_id`
+FROM `QSOptimize_city`
+
+SELECT `QSOptimize_province`.`id`, `QSOptimize_province`.`name`
+FROM `QSOptimize_province`
+WHERE `QSOptimize_province`.`id` = 1 ;
+
+SELECT `QSOptimize_province`.`id`, `QSOptimize_province`.`name`
+FROM `QSOptimize_province`
+WHERE `QSOptimize_province`.`id` = 2 ;
+
+SELECT `QSOptimize_province`.`id`, `QSOptimize_province`.`name`
+FROM `QSOptimize_province`
+WHERE `QSOptimize_province`.`id` = 1 ;
+注：这里的SQL语句是直接从Django的logger:‘django.db.backends’输出出来的
+
+
+
+
+
+如果我们使用select_related()函数：
+
+[python] view plain copy
+>>> citys = City.objects.select_related().all()
+>>> for c in citys:
+...   print c.province
+...
+就只有一次SQL查询，显然大大减少了SQL查询的次数：
+
+[sql] view plain copy
+SELECT `QSOptimize_city`.`id`, `QSOptimize_city`.`name`,
+`QSOptimize_city`.`province_id`, `QSOptimize_province`.`id`, `QSOptimize_province`.`name`
+FROM`QSOptimize_city`
+INNER JOIN `QSOptimize_province` ON (`QSOptimize_city`.`province_id` = `QSOptimize_province`.`id`) ;
+这里我们可以看到，Django使用了INNER JOIN来获得省份的信息。顺便一提这条SQL查询得到的结果如下：
+
+[plain] view plain copy
++----+-----------+-------------+----+-----------+
+| id | name      | province_id | id | name      |
++----+-----------+-------------+----+-----------+
+|  1 | 武汉市    |           1 |  1 | 湖北省    |
+|  2 | 广州市    |           2 |  2 | 广东省    |
+|  3 | 十堰市    |           1 |  1 | 湖北省    |
++----+-----------+-------------+----+-----------+
+3 rows in set (0.00 sec)
+
+
+使用方法
+函数支持如下三种用法：
+*fields 参数
+select_related() 接受可变长参数，每个参数是需要获取的外键（父表的内容）的字段名，以及外键的外键的字段名、外键的外键的外键...。若要选择外键的外键需要使用两个下划线“__”来连接。
+
+例如我们要获得张三的现居省份，可以用如下方式：
+
+[python] view plain copy
+>>> zhangs = Person.objects.select_related('living__province').get(firstname=u"张",lastname=u"三")
+>>> zhangs.living.province
+触发的SQL查询如下：
+
+[sql] view plain copy
+SELECT `QSOptimize_person`.`id`, `QSOptimize_person`.`firstname`,
+`QSOptimize_person`.`lastname`, `QSOptimize_person`.`hometown_id`, `QSOptimize_person`.`living_id`,
+`QSOptimize_city`.`id`, `QSOptimize_city`.`name`, `QSOptimize_city`.`province_id`, `QSOptimize_province`.`id`,
+`QSOptimize_province`.`name`
+FROM `QSOptimize_person`
+INNER JOIN `QSOptimize_city` ON (`QSOptimize_person`.`living_id` = `QSOptimize_city`.`id`)
+INNER JOIN `QSOptimize_province` ON (`QSOptimize_city`.`province_id` = `QSOptimize_province`.`id`)
+WHERE (`QSOptimize_person`.`lastname` = '三'  AND `QSOptimize_person`.`firstname` = '张' );
+可以看到，Django使用了2次 INNER JOIN 来完成请求，获得了city表和province表的内容并添加到结果表的相应列，这样在调用 zhangs.living的时候也不必再次进行SQL查询。
+
+[plain] view plain copy
++----+-----------+----------+-------------+-----------+----+-----------+-------------+----+-----------+
+| id | firstname | lastname | hometown_id | living_id | id | name      | province_id | id | name      |
++----+-----------+----------+-------------+-----------+----+-----------+-------------+----+-----------+
+|  1 | 张        | 三       |           3 |         1 |  1 | 武汉市    |   1         |  1 | 湖北省    |
++----+-----------+----------+-------------+-----------+----+-----------+-------------+----+-----------+
+1 row in set (0.00 sec)
+
+
+
+
+然而，未指定的外键则不会被添加到结果中。这时候如果需要获取张三的故乡就会进行SQL查询了：
+
+[python] view plain copy
+>>> zhangs.hometown.province
+
+[sql] view plain copy
+SELECT `QSOptimize_city`.`id`, `QSOptimize_city`.`name`,
+`QSOptimize_city`.`province_id`
+FROM `QSOptimize_city`
+WHERE `QSOptimize_city`.`id` = 3 ;
+
+SELECT `QSOptimize_province`.`id`, `QSOptimize_province`.`name`
+FROM `QSOptimize_province`
+WHERE `QSOptimize_province`.`id` = 1
+同时，如果不指定外键，就会进行两次查询。如果深度更深，查询的次数更多。
+
+
+
+
+
+值得一提的是，从Django 1.7开始，select_related()函数的作用方式改变了。在本例中，如果要同时获得张三的故乡和现居地的省份，在1.7以前你只能这样做：
+[python] view plain copy
+>>> zhangs = Person.objects.select_related('hometown__province','living__province').get(firstname=u"张",lastname=u"三")
+>>> zhangs.hometown.province
+>>> zhangs.living.province
+但是1.7及以上版本，你可以像和queryset的其他函数一样进行链式操作：
+
+[python] view plain copy
+>>> zhangs = Person.objects.select_related('hometown__province').select_related('living__province').get(firstname=u"张",lastname=u"三")
+>>> zhangs.hometown.province
+>>> zhangs.living.province
+如果你在1.7以下版本这样做了，你只会获得最后一个操作的结果，在本例中就是只有现居地而没有故乡。在你打印故乡省份的时候就会造成两次SQL查询。
+
+depth 参数
+select_related() 接受depth参数，depth参数可以确定select_related的深度。Django会递归遍历指定深度内的所有的OneToOneField和ForeignKey。以本例说明：
+
+[python] view plain copy
+>>> zhangs = Person.objects.select_related(depth = d)
+d=1  相当于 select_related('hometown','living')
+
+d=2  相当于 select_related('hometown__province','living__province')
+
+无参数
+select_related() 也可以不加参数，这样表示要求Django尽可能深的select_related。例如：zhangs = Person.objects.select_related().get(firstname=u"张",lastname=u"三")。但要注意两点：
+
+Django本身内置一个上限，对于特别复杂的表关系，Django可能在你不知道的某处跳出递归，从而与你想的做法不一样。具体限制是怎么工作的我表示不清楚。
+Django并不知道你实际要用的字段有哪些，所以会把所有的字段都抓进来，从而会造成不必要的浪费而影响性能。
+
+
+
+
+3. prefetch_related() 相当于反向查询
+对于多对多字段（ManyToManyField）和一对多字段，可以使用prefetch_related()来进行优化
+>>> zhangs = Person.objects.prefetch_related('visitation').get(firstname=u"张",lastname=u"三")
+>>> for city in zhangs.visitation.all() :
+...   print city
+
+>>> hb = Province.objects.prefetch_related('city_set').get(name__iexact=u"湖北省")
+>>> for city in hb.city_set.all():
+...   city.name
+
+>>> plist = Order.objects.select_related('customer').prefetch_related('customer__visitation__province').get(id=1)
+>>> for city in plist.customer.visitation.all():
+...   print city.province.name
+
+
+
+
+小结
+select_related主要针一对一和多对一关系进行优化。
+select_related使用SQL的JOIN语句进行优化，通过减少SQL查询的次数来进行优化、提高性能。
+可以通过可变长参数指定需要select_related的字段名。也可以通过使用双下划线“__”连接字段名来实现指定的递归查询。没有指定的字段不会缓存，没有指定的深度不会缓存，如果要访问的话Django会再次进行SQL查询。
+也可以通过depth参数指定递归的深度，Django会自动缓存指定深度内所有的字段。如果要访问指定深度外的字段，Django会再次进行SQL查询。
+也接受无参数的调用，Django会尽可能深的递归查询所有的字段。但注意有Django递归的限制和性能的浪费。
+Django >= 1.7，链式调用的select_related相当于使用可变长参数。Django < 1.7，链式调用会导致前边的select_related失效，只保留最后一个。
+
+
+值得注意的是，可以在调用prefetch_related之前调用select_related，并且Django会按照你想的去做：先select_related，然后利用缓存到的数据prefetch_related。然而一旦prefetch_related已经调用，select_related将不起作用。
+
+小结
+因为select_related()总是在单次SQL查询中解决问题，而prefetch_related()会对每个相关表进行SQL查询，因此select_related()的效率通常比后者高。
+鉴于第一条，尽可能的用select_related()解决问题。只有在select_related()不能解决问题的时候再去想prefetch_related()。
+你可以在一个QuerySet中同时使用select_related()和prefetch_related()，从而减少SQL查询的次数。
+只有prefetch_related()之前的select_related()是有效的，之后的将会被无视掉。
