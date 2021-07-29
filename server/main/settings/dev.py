@@ -2,24 +2,17 @@ from django.test.runner import DiscoverRunner
 
 from .common import *  # noqa
 
+DEBUG = True
+
+ALLOWED_HOSTS = [
+    '127.0.0.1','localhost'
+]
+
 env = 'dev'
 
 REDIS = f"redis://{SECRETS[env]['redis']['host']}:{SECRETS[env]['redis']['port']}"
 MONGO = 'mongodb://%s:%s@%s:%s/%s' % (SECRETS[env]['mongo']['user'], SECRETS[env]['mongo']['password'], SECRETS[env]['mongo']['host'], SECRETS[env]['mongo']['port'], SECRETS[env]['mongo']['auth'])
 
-DEBUG = True
-
-DEV_INSTALLED_APPS = [
-    'app',
-    'django_celery_results'
-]
-
-
-INSTALLED_APPS += DEV_INSTALLED_APPS
-
-ALLOWED_HOSTS = [
-    '127.0.0.1','localhost'
-]
 
 DATABASES = {
     'default': {
