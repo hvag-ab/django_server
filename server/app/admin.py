@@ -35,6 +35,9 @@ class ClothModelAdmin(ModelAdmin):
 
     # 6. 查询列
     search_fields = ['color', 'total']
+    
+    # 当存在多对多的外键的时候 设置这个 更加方便选择 可以填写多个外键字段
+    filter_horizontal = ('外键字段',)
 
     # 7. 是否在页面顶端显示保存按钮
     # save_on_top = True
