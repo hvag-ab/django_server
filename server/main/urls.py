@@ -1,3 +1,5 @@
+import traceback
+
 from django.conf.urls import include
 from django.urls import path
 from django.conf import settings
@@ -7,15 +9,13 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 ]
 
-app_urls = getattr(settings,'PROD_INSTALLED_APPS',None) or \
-           getattr(settings,'DEV_INSTALLED_APPS',None) or \
-           getattr(settings,'DOCKER_INSTALLED_APPS',None) or []
+app_urls = getattr(settings,'APPS', [])
 
 for app_name in app_urls:
     try:
         urlpatterns.append(path(f'api/<str:version>/{app_name}/',include('{}.urls'.format(app_name))))
     except Exception as e:
-        print(e)
+        print(traceback.format_exc())
 
 
 
