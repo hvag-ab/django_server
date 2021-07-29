@@ -2,21 +2,23 @@ from .common import *  # noqa
 
 DEBUG = False
 
+ALLOWED_HOSTS = [
+    '*'
+]
+
+# 设置白名单
+# CORS_ORIGIN_WHITELIST = (
+#     'http://127.0.0.1',
+# )
+
+# 默认允许所有域名访问
+#CORS_ORIGIN_ALLOW_ALL = False
+
+
 env = 'prod'
 
 REDIS = f"redis://{SECRETS[env]['redis']['host']}:{SECRETS[env]['redis']['port']}"
 MONGO = 'mongodb://%s:%s@%s:%s/%s' % (SECRETS[env]['mongo']['user'], SECRETS[env]['mongo']['password'], SECRETS[env]['mongo']['host'], SECRETS[env]['mongo']['port'], SECRETS[env]['mongo']['auth'])
-
-PROD_INSTALLED_APPS = [
-    'app',
-    'django_celery_results'
-]
-
-INSTALLED_APPS += PROD_INSTALLED_APPS
-
-ALLOWED_HOSTS = [
-    '*'
-]
 
 
 DATABASES = {
@@ -38,16 +40,6 @@ REST_FRAMEWORK = {
     )
 }
 
-
-# CACHES = {
-#     'default': {
-#         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-#         'LOCATION': ['memcached:11211'],
-#         'TIMEOUT': 300,  # 缓存超时时间（默认300秒，None表示永不过期，0表示立即过期）
-#         'BINARY': True
-
-#     }
-# }
 
 CACHES = {
     "default": {
