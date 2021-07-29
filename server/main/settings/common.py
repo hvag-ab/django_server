@@ -50,9 +50,8 @@ INSTALLED_APPS = [
     'django_filters', #pip install django-filter
 ]
 
-install_apps = import_string('config.installed_apps')
-# 全局apps + 配置的apps
-INSTALLED_APPS += install_apps.INSTALLED_APPS
+APPS = import_string('config.installed_apps').INSTALLED_APPS
+INSTALLED_APPS += APPS
 
 
 MIDDLEWARE = [
