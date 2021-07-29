@@ -1,0 +1,8 @@
+django
+channels
+channels_redis
+redis
+pymongo
+django-redis
+pymysql
+uvicorn[standard]

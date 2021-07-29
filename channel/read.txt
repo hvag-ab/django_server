@@ -1,0 +1,23 @@
+gunicorn -b 0.0.0.0:9000 main.asgi:ws_application -w 2 -k uvicorn.workers.UvicornWorker
+uvicorn --host 0.0.0.0 --port 9000 main.asgi:ws_application
+gunicorn -c ./gunicorn.py main.asgi:ws_application
+
+nginx 配置
+
+      location ^~/ws {
+            proxy_pass http://ip:9000/;
+
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+
+            proxy_redirect     off;
+            proxy_set_header   Host $host;
+            proxy_set_header   X-Real-IP $remote_addr;
+            proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header   X-Forwarded-Host $server_name;
+            proxy_read_timeout  36000s;
+            proxy_send_timeout  36000s;
+        }
+        
+访问  ws://ip:port/ws/xxx', 如果配置了https  wss://ip:port/ws/xxx'
