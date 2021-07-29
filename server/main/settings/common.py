@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     'django_filters', #pip install django-filter
 ]
 
-APPS = import_string('config.installed_apps').INSTALLED_APPS
+APPS = import_string('config.installed_apps.INSTALLED_APPS')
 INSTALLED_APPS += APPS
 
 
