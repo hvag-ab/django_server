@@ -12,10 +12,9 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 import json
-
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 from pathlib import Path
+from django.utils.module_loading import import_string
+
 
 PROJECT_PACKAGE = Path(__file__).resolve().parent.parent
 PROJECT_NAME = PROJECT_PACKAGE.parts[-1]
@@ -31,9 +30,7 @@ try:
     with open(config) as handle:
         SECRETS = json.load(handle)
 except IOError:
-    SECRETS = {
-        'secret_key': 'axxxxxxfafweaifjwoeiwojfewaijofwof',
-    }
+    raise IOError('config file parse error or io error')
 
 SECRET_KEY = str(SECRETS['secret_key'])
 
@@ -52,6 +49,11 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',  # TOKEN 验证
     'django_filters', #pip install django-filter
 ]
+
+install_apps = import_string('config.installed_apps')
+# 全局apps + 配置的apps
+INSTALLED_APPS += install_apps.INSTALLED_APPS
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -165,13 +167,14 @@ STATICFILES_FINDERS = (
 )
 
 # 跨域设置
-# # CORS 设置跨域域名
+# # 设置白名单
 # CORS_ORIGIN_WHITELIST = (
 #     'http://127.0.0.1',
 # )
 
-CORS_ALLOW_CREDENTIALS = True  # CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_CREDENTIALS = True  # 指明在跨域访问中，后端是否支持对cookie的操作。
 
+# 默认允许所有域名访问
 CORS_ORIGIN_ALLOW_ALL = True
 
 CORS_ALLOW_METHODS = (
