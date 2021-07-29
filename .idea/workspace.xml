@@ -2,13 +2,32 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="681aef62-276c-475e-b7a9-5da6c1808dab" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/server/util/mongo.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/config/secrets.json" beforeDir="false" afterPath="$PROJECT_DIR$/server/config/secrets.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/main/settings/common.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/main/settings/common.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/main/settings/dev.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/main/settings/dev.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/main/settings/docker.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/main/settings/docker.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/main/settings/prod.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/main/settings/prod.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/asgi_channel/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/asgi_channel/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/asgi_channel/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/asgi_channel/.idea/main.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/asgi_channel/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/asgi_channel/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/asgi_channel/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/asgi_channel/celery_tasks/LuckySheet.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/asgi_channel/celery_tasks/celery_beat.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/asgi_channel/celery_tasks/celery_config.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/asgi_channel/celery_tasks/celery_main.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/asgi_channel/celery_tasks/monitor.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/asgi_channel/celery_tasks/queue.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/asgi_channel/celery_tasks/tasks.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/asgi_channel/consumers/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/asgi_channel/consumers/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/asgi_channel/main/settings.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/asgi_channel/main/settings/prod.py" beforeDir="false" afterPath="$PROJECT_DIR$/asgi_channel/main/settings/prod.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/asgi_channel/main/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/asgi_channel/main/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/asgi_channel/util/mongo_handler.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/conf/gunicorn_asgi.ini" beforeDir="false" afterPath="$PROJECT_DIR$/conf/gunicorn_asgi.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/logs/django_json.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/logs/django_rotating.log" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/logs/django_rotating_time.log" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/app.db" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/util/zip.py" beforeDir="false" afterPath="$PROJECT_DIR$/server/util/zip.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,7 +55,7 @@
     </replaceStrings>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/asgi_channel" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
@@ -203,7 +222,11 @@
       <workItem from="1625140570942" duration="3325000" />
       <workItem from="1625365011903" duration="2006000" />
       <workItem from="1625760048531" duration="76000" />
-      <workItem from="1625872842859" duration="6216000" />
+      <workItem from="1625872842859" duration="6575000" />
+      <workItem from="1625896190350" duration="659000" />
+      <workItem from="1625916331008" duration="811000" />
+      <workItem from="1625990173627" duration="5029000" />
+      <workItem from="1627570267050" duration="666000" />
     </task>
     <servers />
   </component>

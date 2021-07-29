@@ -19,7 +19,7 @@ def zipDir(dirpath, outfolder: str = None, file_name='x', exclude_file: list = N
         outfolder = pathlib.Path(outfolder)
     file_path = str(outfolder / f'{file_name}.zip')
     zip = zipfile.ZipFile(file_path, "w", zipfile.ZIP_DEFLATED)
-    print('xxxx')
+
     for path, dirnames, filenames in os.walk(dirpath):
         # 去掉目标根路径，只对目标文件夹下边的文件及文件夹进行压缩
         fpath = path.replace(dirpath, '')
