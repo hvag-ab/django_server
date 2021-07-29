@@ -2,19 +2,14 @@ from .common import *  # noqa
 
 DEBUG = False
 
+ALLOWED_HOSTS = [
+    '*'
+]
+
 env = 'docker'
 
 REDIS = f"redis://{SECRETS[env]['redis']['host']}:{SECRETS[env]['redis']['port']}"
 MONGO = 'mongodb://%s:%s@%s:%s/%s' % (SECRETS[env]['mongo']['user'], SECRETS[env]['mongo']['password'], SECRETS[env]['mongo']['host'], SECRETS[env]['mongo']['port'], SECRETS[env]['mongo']['auth'])
-
-DOCKER_INSTALLED_APPS = [
-]
-
-INSTALLED_APPS += DOCKER_INSTALLED_APPS
-
-ALLOWED_HOSTS = [
-    '*'
-]
 
 
 DATABASES = {
