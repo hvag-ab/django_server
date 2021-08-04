@@ -27,7 +27,7 @@ class Test(APIView):
         func1(..)
         func2(..)
         
-如果发现func1 函数处理叫慢
+如果发现func1 函数处理慢
 @lp
 func1  查看具体
 
