@@ -9,12 +9,12 @@ def lp(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        lp = LineProfiler()
-        lp_wrapper = lp(func)
+        profile = LineProfiler()
+        lp_wrapper = profile(func)
         res = lp_wrapper(*args, **kwargs)
-        lp.print_stats()
+        profile.print_stats()
         return res
-
+        
     return wrapper
     
 """
