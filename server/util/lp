@@ -4,7 +4,7 @@ from line_profiler import LineProfiler
 
 def lp(func):
     """
-    显示函数调用时间
+    逐行显示函数调用时间
     """
 
     @wraps(func)
