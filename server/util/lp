@@ -24,6 +24,11 @@ class Test(APIView):
 
     @lp
     def get(self, request, *args, **kwargs):
-        pass
+        func1(..)
+        func2(..)
+        
+如果发现func1 函数处理叫慢
+@lp
+func1  查看具体
 
 """
