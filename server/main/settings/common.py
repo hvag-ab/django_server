@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
-import os
 import json
 from pathlib import Path
 from django.utils.module_loading import import_string
@@ -221,7 +220,8 @@ JWT_AUTH = {
 BASE_LOG_DIR = BASE_DIR.parent / "logs"
 # 如果地址不存在，则会自动创建log文件夹
 if not BASE_LOG_DIR.is_dir():
-    os.mkdir(BASE_LOG_DIR)
+    BASE_LOG_DIR.mkdir()
+    
 LOGGING = {
     'version': 1,  # 保留字
     'disable_existing_loggers': False,  # 禁用已经存在的logger实例
