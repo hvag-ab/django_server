@@ -8,7 +8,7 @@ mongo_uri = settings.MONGO
 class MongoConnection:
 
     def __init__(self, dbname, collection, maxPoolSize=20, minPoolSize=5, maxIdleTimeMS=1000, connectTimeoutMS=1000):
-        client = MongoClient(mongo_uri, maxPoolSize=maxPoolSize, minPoolSize=minPoolSize, maxIdleTimeMS=maxIdleTimeMS, connectTimeoutMS=connectTimeoutMS)
+        client = MongoClient(mongo_uri, maxPoolSize=maxPoolSize, minPoolSize=minPoolSize, maxIdleTimeMS=maxIdleTimeMS, connectTimeoutMS=connectTimeoutMS, connect=False)
         self.db = client[dbname] #没有就创建
         self.collection = self.db[collection] #没有就创建
 
