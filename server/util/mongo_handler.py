@@ -1,399 +1,262 @@
+import datetime as dt
 import logging
-from logging import Handler, NOTSET
-from datetime import datetime as dt
-from io import StringIO  # noqa
+import threading
 
-import traceback
-import json
-import uuid
-import pymongo
-from pymongo import ReturnDocument
+from pymongo import MongoClient
+from pymongo.collection import Collection
+from pymongo.errors import OperationFailure
+from pymongo.errors import ServerSelectionTimeoutError
+
+"""
+Example format of generated bson document:
+{
+    'thread': -1216977216,
+    'threadName': 'MainThread',
+    'level': 'ERROR',
+    'timestamp': datetime.datetime(2016, 8, 16, 15, 20, 24, 794341),
+    'message': 'test message',
+    'module': 'test_module',
+    'fileName': '/var/projects/python/log4mongo-python/tests/test_handlers.py',
+    'lineNumber': 38,
+    'method': 'test_emit_exception',
+    'loggerName':  'testLogger',
+    'exception': {
+        'stackTrace': 'Traceback (most recent call last):
+                       File "/var/projects/python/log4mongo-python/tests/\
+                           test_handlers.py", line 36, in test_emit_exception
+                       raise Exception(\'exc1\')
+                       Exception: exc1',
+        'message': 'exc1',
+        'code': 0
+    }
+}
+"""
+_connection = None
 
 
-class MissingConnectionError(ValueError):
-    pass
+class MongoFormatter(logging.Formatter):
+
+    DEFAULT_PROPERTIES = logging.LogRecord(
+        '', '', '', '', '', '', '', '').__dict__.keys()
+
+    def format(self, record):
+        """Formats LogRecord into python dictionary."""
+        # Standard document
+        document = {
+            'timestamp': dt.datetime.utcnow(),
+            'level': record.levelname,
+            'thread': record.thread,
+            'threadName': record.threadName,
+            'message': record.getMessage(),
+            'loggerName': record.name,
+            'fileName': record.pathname,
+            'module': record.module,
+            'method': record.funcName,
+            'lineNumber': record.lineno
+        }
+        # Standard document decorated with exception info
+        if record.exc_info is not None:
+            document.update({
+                'exception': {
+                    'message': str(record.exc_info[1]),
+                    'code': 0,
+                    'stackTrace': self.formatException(record.exc_info)
+                }
+            })
+        # Standard document decorated with extra contextual information
+        if len(self.DEFAULT_PROPERTIES) != len(record.__dict__):
+            contextual_extra = set(record.__dict__).difference(
+                set(self.DEFAULT_PROPERTIES))
+            if contextual_extra:
+                for key in contextual_extra:
+                    document[key] = record.__dict__[key]
+        return document
 
 
-class LogConfigError(ValueError):
-    pass
+class MongoHandler(logging.Handler):
 
+    def __init__(self, level=logging.NOTSET, host='localhost', port=27017,
+                 database_name='logs', collection='logs',
+                 username=None, password=None, authentication_db='admin',
+                 fail_silently=False, formatter=None, capped=False,
+                 capped_max=1000, capped_size=1000000, reuse=True, **kwargs):
+        """
+        Setting up mongo handler, initializing mongo database connection via
+        pymongo.
+        If reuse is set to false every handler will have it's own MongoClient.
+        This could hammer down your MongoDB instance, but you can still use
+        this option.
+        The default is True. As such a program with multiple handlers
+        that log to mongodb will have those handlers share a single connection
+        to MongoDB.
+        """
+        logging.Handler.__init__(self, level)
+        self.host = host
+        self.port = port
+        self.database_name = database_name
+        self.collection_name = collection
+        self.username = username
+        self.password = password
+        self.authentication_database_name = authentication_db
+        self.fail_silently = fail_silently
+        self.connection = None
+        self.db = None
+        self.collection = None
+        self.authenticated = False
+        self.formatter = formatter or MongoFormatter()
+        self.capped = capped
+        self.capped_max = capped_max
+        self.capped_size = capped_size
+        self.reuse = reuse
+        self._connect(**kwargs)
 
-class UnsupportedVersionError(ValueError):
-    pass
-
-
-class LogRecord(dict):
-    pass
-
-
-logger = logging.getLogger('')
-console = logging.getLogger('mongolog-int')
-
-uuid_namespace = uuid.UUID('8296424f-28b7-5982-a434-e6ec8ef529b3')
-
-
-class BaseMongoLogHandler(Handler):
-    REFERENCE = 'reference'
-    EMBEDDED = 'embedded'
-
-    def __init__(
-            self, level=NOTSET, connection=None, database='mongolog', collection='mongolog', w=1, j=False, verbose=None,
-            time_zone="local", record_type="embedded", max_keep=25, *args, **kwargs):  # noqa
-
-        super().__init__(level)
-        self.connection = connection
-        self.database = database
-        self.collection = collection
-
-        valid_record_types = [self.REFERENCE, self.EMBEDDED]
-        if record_type not in valid_record_types:
-            raise ValueError("record_type myst be one of %s" % valid_record_types)
-
-        # The type of document we store
-        self.record_type = record_type
-
-        # number of dates to keep in embedded document
-        self.max_keep = max_keep
-
-        # The write concern
-        self.w = w
-
-        # If True block until write operations have been committed to the journal.
-        self.j = j
-
-        # Used to determine which time setting is used in the simple record_type
-        self.time_zone = time_zone
-
-        # If True will print each log_record to console before writing to mongo
-        self.verbose = verbose
-
-        if self.connection:
-            self.connect()
-
-            # Make sure the indexes are setup properly
+    def _connect(self, **kwargs):
+        """Connecting to mongo database."""
+        global _connection
+        if self.reuse and _connection:
+            self.connection = _connection
+        else:
+            self.connection = MongoClient(host=self.host, port=self.port,
+                                          **kwargs)
             try:
-                self.ensure_collections_indexed()
-            except pymongo.errors.ServerSelectionTimeoutError:
-                pass
+                self.connection.is_primary
+            except ServerSelectionTimeoutError:
+                if self.fail_silently:
+                    return
+                raise
+            _connection = self.connection
+
+        self.db = self.connection[self.database_name]
+        if self.username is not None and self.password is not None:
+            auth_db = self.connection[self.authentication_database_name]
+            self.authenticated = auth_db.authenticate(self.username,
+                                                      self.password)
+
+        if self.capped:
+            #
+            # We don't want to override the capped collection
+            # (and it throws an error anyway)
+            try:
+                self.collection = Collection(self.db, self.collection_name,
+                                             capped=True, max=self.capped_max,
+                                             size=self.capped_size)
+            except OperationFailure:
+                # Capped collection exists, so get it.
+                self.collection = self.db[self.collection_name]
         else:
-            console.error("\n----------- Connection Error ------------")
-            console.error("Hanlder(%s) missing 'connection' key", type(self))
-            console.error("%s", json.dumps(self.__dict__, indent=4, sort_keys=True, default=str))
-            console.error("------------------------------------------\n")
-            raise MissingConnectionError("Missing 'connection' key")
+            self.collection = self.db[self.collection_name]
 
-    def __str__(self):
-        return '%s' % self.connection
-
-    def connect(self, test=False):
-
-        self.client = self.connect_pymongo3(test)
-
-        self.mongo_version = float(".".join(map(str, self.client.server_info()['versionArray'][:2])))
-
-        # The mongolog database
-        self.db = self.client[self.database]
-
-        # This is the primary log document collection
-        self.mongolog = self.db[self.collection]
-
-        # This is the timestamp collection
-        self.timestamp = self.db.timestamp
-
-    def get_db(self):
+    def close(self):
         """
-        Return a handler to the database handler
+        If authenticated, logging out and closing mongo database connection.
         """
-        return getattr(self, "db", None)
-
-    def get_timestamp_collection(self):
-        return getattr(self, "timestamp", None)
-
-    def get_collection(self):
-        """
-        Return the collection being used by MongoLogHandler
-        """
-        return getattr(self, "mongolog", None)
-
-    def connect_pymongo3(self, test=False):
-
-        try:
-            if test:
-                raise pymongo.errors.ServerSelectionTimeoutError("Just a test")
-
-            if self.w == 0:
-                # if w=0 you can't have other options
-                self.client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5, w=self.w)
-            else:
-                self.client = pymongo.MongoClient(self.connection, serverSelectionTimeoutMS=5, w=self.w, j=self.j)
-
-        except pymongo.errors.ServerSelectionTimeoutError:
-            msg = "Unable to connect to mongo with (%s)" % self.connection
-            # NOTE: Trying to log here ends up with Duplicate Key errors on upsert in emit()
-            print(msg)
-            raise pymongo.errors.ServerSelectionTimeoutError(msg)
-
-        return self.client
-
-    def check_keys(self, record):
-        """
-        Check for . and $ in two levels of keys below msg.
-        TODO:   Make this a recursive function that looks for these keys
-                n levels deep
-        """
-        if not isinstance(record['msg'], dict):
-            return record
-
-        for k, v in list(record['msg'].items()):
-            self._check_keys(k, v, record['msg'])
-
-        return record
-
-    def _check_keys(self, k, v, _dict):
-        """
-        Recursively check key's for special characters.
-        """
-        _dict[self.new_key(k)] = _dict.pop(k)
-
-        if isinstance(v, dict):
-            for nk, vk in list(v.items()):
-                self._check_keys(nk, vk, v)
-
-        # We could also have an array of dictionaries so we check those as well.
-        if isinstance(v, list):
-            for l in v:
-                if isinstance(l, dict):
-                    for nk, vk in list(l.items()):
-                        self._check_keys(nk, vk, l)
-
-    def new_key(self, key):
-        """
-        mongo < 3.6
-            Repalce . and $ with Unicode full width equivalents
-        mongo >= 3.6
-            As of mongo 3.6 . and $ are permitted in keys.  But keys may not start with $
-            If we encounter a key that starts with a $ we replace it with it's unicode full width equivalent.
-        """
-        if self.mongo_version >= 3.6:
-            if key[0] == "$":
-                key = u"＄" + key[1:]
-        else:
-            # Older mongo doesn't support $ or . in keys
-            if "." in key:
-                key = key.replace(u".", u"．")
-            elif "$" in key:
-                key = key.replace(u"$", u"＄")
-
-        return key
-
-    def create_log_record(self, record):
-        """
-        Convert the python LogRecord to a MongoLog Record.
-        Also add a UUID which is a combination of the log message and log level.
-        Override in subclasses to change log record formatting.
-        See SimpleMongoLogHandler and VerboseMongoLogHandler
-        """
-        # This is still a python LogRecord Object that we are manipulating
-        if record.exc_info:
-            record.exc_text = self.formatException(record.exc_info)
-
-        record = LogRecord(json.loads(json.dumps(record.__dict__, default=str)))
-        if "mongolog.management.commands" in record['name']:
-            return {'uuid': 'none', 'time': 'none', 'level': 'MONGOLOG-INTERNAL'}
-        record = self.check_keys(record)
-
-        # The UUID is a combination of the record.levelname and the record.msg
-
-        uuid_key = str(record['msg']) + str(record['levelname'])
-
-        record.update({
-            'uuid': uuid.uuid5(uuid_namespace, uuid_key).hex,
-            # NOTE: if the user is using django and they have USE_TZ=True in their settings
-            # then the timezone displayed will be what is specified in TIME_ZONE
-            # For instance if they have TIME_ZONE='UTC' then both dt.now() and dt.utcnow()
-            # will be equivalent.
-            'time': dt.utcnow() if self.time_zone == 'utc' else dt.now(),
-        })
-
-        # If we are using an embedded document type
-        # we need to create the dates array
-        if self.record_type == self.EMBEDDED:
-            record['dates'] = [record['time']]
-
-        return record
-
-    def formatException(self, ei):
-        """
-        Format and return the specified exception information as a string.
-        This default implementation just uses
-        traceback.print_exception()
-        """
-        sio = StringIO()
-
-        traceback.print_exception(ei[0], ei[1], ei[2], None, sio)
-        s = sio.getvalue()
-        sio.close()
-        if s[-1:] == "\n":
-            s = s[:-1]
-        return s
-
-    def ensure_collections_indexed(self):
-        """
-        Create the indexes if they are not already created
-        """
-        self.mongolog.create_index([("uuid", 1)], unique=True)
-        self.mongolog.create_index([("dates", 1)])
-        self.mongolog.create_index([("counter", 1)])
-
-        self.timestamp.create_index([
-            ("uuid", 1),
-            ("ts", 1)
-        ])
+        if self.authenticated:
+            self.db.logout()
+        if self.connection is not None:
+            self.connection.close()
 
     def emit(self, record):
+        """Inserting new logging record to mongo database."""
+        if self.collection is not None:
+            try:
+                self.collection.insert_one(self.format(record))
+            except Exception:
+                if not self.fail_silently:
+                    self.handleError(record)
+
+    def __exit__(self, type, value, traceback):
+        self.close()
+
+
+class BufferedMongoHandler(MongoHandler):
+
+    def __init__(self, level=logging.NOTSET, host='localhost', port=27017,
+                 database_name='logs', collection='logs',
+                 username=None, password=None, authentication_db='admin',
+                 fail_silently=False, formatter=None, capped=False,
+                 capped_max=1000, capped_size=1000000, reuse=True,
+                 buffer_size=100, buffer_periodical_flush_timing=5.0,
+                 buffer_early_flush_level=logging.CRITICAL, **kwargs):
         """
-        From python:  type(record) == LogRecord
-        https://github.com/certik/python-2.7/blob/master/Lib/logging/__init__.py#L230
+        Setting up buffered mongo handler, initializing mongo database connection via
+        pymongo.
+        This subclass aims to provide buffering mechanism to avoid hammering the database server and
+        write-locking the database too often (even if mongo is performant in that matter).
+        If buffer_periodical_flush_timer is set to None or 0, no periodical flush of the buffer will be done.
+        It means that buffered messages might be stuck here for a while until the buffer full or
+        a critical message is sent (both causing flush).
+        If buffer_periodical_flush_timer is set to numeric value, a thread with timer will be launched
+        to call the buffer flush periodically.
         """
-        log_record = self.create_log_record(record)
 
-        # TODO move this to a validate log_record method and add more validation
-        log_record.get('uuid', ValueError("You must have a uuid in your LogRecord"))
+        MongoHandler.__init__(self, level=level, host=host, port=port, database_name=database_name, collection=collection,
+                              username=username, password=password, authentication_db=authentication_db,
+                              fail_silently=fail_silently, formatter=formatter, capped=capped, capped_max=capped_max,
+                              capped_size=capped_size, reuse=reuse, **kwargs)
+        self.buffer = []
+        self.buffer_size = buffer_size
+        self.buffer_periodical_flush_timing = buffer_periodical_flush_timing
+        self.buffer_early_flush_level = buffer_early_flush_level
+        self.last_record = None #kept for handling the error on flush
+        self.buffer_timer_thread = None
 
-        if self.verbose:
-            print(json.dumps(log_record, sort_keys=True, indent=4, default=str))
+        self.buffer_lock = threading.RLock()
 
-        if self.record_type == self.EMBEDDED:
-            self.insert_embedded(log_record)
+        self._timer_stopper = None
 
-        elif self.record_type == self.REFERENCE:
-            self.reference_log_pymongo_3(log_record)
+        # setup periodical flush
+        if self.buffer_periodical_flush_timing:
 
-    def insert_embedded(self, log_record):
-        """
-        Insert an embedded document.  Embedded documents have a 'counter'
-        variable that increments each time the document is seen.  The 'date'
-        array is capped at the last 'max_keep'
-        """
-        query = {'uuid': log_record['uuid']}
-        result = self.mongolog.find(query)
-        if result.count() == 0:
+            # clean exit event
+            import atexit
+            atexit.register(self.destroy)
 
-            # First time this record has been seen add a created field and insert it
-            log_record['created'] = log_record.pop('time')
-            log_record['counter'] = 1
-            self.mongolog.insert_one(log_record)
+            # call at interval function
+            def call_repeatedly(interval, func, *args):
+                stopped = threading.Event()
 
-        else:
-            # record has been seen before so we update the counter and push/pop
-            # the log record time.  We keep the 'n' latest log record
-            update = {
-                "$push": {
-                    'dates': {
-                        '$each': [log_record['time']],
-                        "$slice": -self.max_keep  # only keep the last n entries
-                    }
-                },
-                # Keep a counter of the number of times we see this record
-                "$inc": {'counter': 1}
-            }
+                # actual thread function
+                def loop():
+                    while not stopped.wait(interval):  # the first call is in `interval` secs
+                        func(*args)
 
-            self.mongolog.update_one(query, update)
+                timer_thread = threading.Thread(target=loop)
+                timer_thread.daemon = True
+                timer_thread.start()
+                return stopped.set, timer_thread
 
-    def reference_log_pymongo_3(self, log_record):
-        query = {'uuid': log_record['uuid']}
-        self.mongolog.find_one_and_replace(
-            query,
-            log_record,
-            upsert=True,
-            return_document=ReturnDocument.AFTER,
-        )
+            # launch thread
+            self._timer_stopper, self.buffer_timer_thread = call_repeatedly(self.buffer_periodical_flush_timing, self.flush_to_mongo)
 
-        # Now update the timestamp collection
-        # We can do this with a lower write concern than the previous operation since
-        # we can alway's retreive the last datetime from the mongolog collection
-        self.timestamp.insert({
-            'uuid': log_record['uuid'],
-            'ts': log_record['time']
-        })
+    def emit(self, record):
+        """Inserting new logging record to buffer and flush if necessary."""
 
+        with self.buffer_lock:
+            self.last_record = record
+            self.buffer.append(self.format(record))
 
-class SimpleMongoLogHandler(BaseMongoLogHandler):
-    def create_log_record(self, record):
-        record = super(SimpleMongoLogHandler, self).create_log_record(record)
-        if record['uuid'] == 'none':
-            return record
-        mongolog_record = LogRecord({
-            'name': record['name'],
-            'thread': record['thread'],
-            'process': record['process'],
-            'level': record['levelname'],
-            'msg': record['msg'],
-            'path': record['pathname'],
-            'module': record['module'],
-            'line': record['lineno'],
-            'func': record['funcName'],
-            'filename': record['filename'],
-            'uuid': record['uuid'],
-            'time': record['time'],
-        })
+        if len(self.buffer) >= self.buffer_size or record.levelno >= self.buffer_early_flush_level:
+            self.flush_to_mongo()
 
-        if record.get('dates'):
-            mongolog_record['dates'] = record['dates']
+    def flush_to_mongo(self):
+        """Flush all records to mongo database."""
+        if self.collection is not None and len(self.buffer) > 0:
+            with self.buffer_lock:
+                try:
+                    self.collection.insert_many(self.buffer)
+                    self.empty_buffer()
+                except Exception:
+                    if not self.fail_silently:
+                        self.handleError(self.last_record) #handling the error on flush
 
-        # Add exception info  except:捕获异常 logger.error('Failed to open file', exc_info=True)
-        if record['exc_info']:
-            mongolog_record['exception'] = {
-                'info': record['exc_info'],
-                'trace': record['exc_text'].split("\n") if record['exc_text'] else None,
-            }
-        return mongolog_record
+    def empty_buffer(self):
+        """Empty the buffer list."""
+        del self.buffer
+        self.buffer = []
 
-
-class VerboseMongoLogHandler(BaseMongoLogHandler):
-    def create_log_record(self, record):
-        record = super(VerboseMongoLogHandler, self).create_log_record(record)
-        mongolog_record = LogRecord({
-            'name': record['name'],
-            'thread': {
-                'num': record['thread'],
-                'name': record['threadName'],
-            },
-            'process': {
-                'num': record['process'],
-                'name': record['processName'],
-            },
-            'level': {
-                'name': record['levelname'],
-                'num': record['levelno'],
-            },
-            'info': {
-                'msg': record['msg'],
-                'path': record['pathname'],
-                'module': record['module'],
-                'line': record['lineno'],
-                'func': record['funcName'],
-                'filename': record['filename'],
-            },
-            'uuid': record['uuid'],
-            'time': record['time'],
-        })
-
-        if record['exc_info']:
-            mongolog_record['exception'] = {
-                'info': record['exc_info'],
-                'trace': record['exc_text'],
-            }
-
-        return mongolog_record
-"""
-日志handler 设置
-
-  'mongolog': {
-            'level': 'CRITICAL',
-            'class': 'mongolog.SimpleMongoLogHandler',
-            'connection': 'mongodb://xxx:27017',
-            'collection': 'mongolog'
-        },
-
-"""
+    def destroy(self):
+        """Clean quit logging. Flush buffer. Stop the periodical thread if needed."""
+        if self._timer_stopper:
+            self._timer_stopper()
+        self.flush_to_mongo()
+        self.close()
