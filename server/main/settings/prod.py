@@ -68,11 +68,8 @@ CACHES = {
 # 日志写入mongo
 #LOGGING["handlers"]["mongo"] = {
 #     'level': 'INFO',
-#     'class': 'util.mongo_handler.BaseMongoLogHandler',  # 保存到文件，自动切
-#     'connection': MONGO,
-#     'max_keep': 1, # 当输入同一个消息message的时候 保留几条
-#     'database': 'test',
-#     'collection': 'log'
+#     'class': 'util.mongo_handler.MongoHandler',  # 保存到文件，自动切
+#     'database': 'mongo_logs',
 # }
 # LOGGING["loggers"]["mongo"]= {
 #             'handlers': ['mongo'],
