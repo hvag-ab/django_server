@@ -14,7 +14,7 @@ from rest_framework import permissions
 view参数 是获取视图的类属性方法
 class x(APIView):
    params = "x"
-view.params = 'x'
+ p = getattr(view,'params') == 'x'
 """
 class IsOwnerOrReadOnly(permissions.BasePermission):
 
