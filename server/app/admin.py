@@ -15,7 +15,7 @@ class ClothModelAdmin(ModelAdmin):
     # form = UserModelForm
     # 1.定义列表页面，显示列数据
     list_display = ['color', 'total', 'description','hvag']
-    #自定义显示字段
+    #自定义显示字段 自定义显示字段名 不能 和 模型中的字段名一样
     def hvag(self, obj):
         return obj.description
 
