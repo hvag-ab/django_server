@@ -65,6 +65,16 @@ class API(APIView):
             serializer.save()
             return JsResponse(serializer.data)
         return JsResponse(msg=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+    def patch(self, request, *args, **kwargs):
+        id = request.data.get('id')
+        user = User.objects.get(id=id)
+        serializer = UserinfoSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return JsResponse(serializer.data)
+        return JsResponse(msg=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, *args, **kwargs):
         id = request.data.get('id')
