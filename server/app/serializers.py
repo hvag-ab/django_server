@@ -29,9 +29,9 @@ source 指定某个外键的某个字段
 DecimalField(max_digits=6, decimal_places=4)
 """
 
-
-# 一.序列化 模型 - json
-# 1. 模型序列化
+# ModelSerializer这种尽量不用来做反序列化 模型里面常含有外键字段 外键字段需要排除exclude 否则容易报错
+# 一.序列化 模型 - json  
+# 1. 模型序列化   
 class ColorsSerializer(serializers.ModelSerializer):
     # clothes =  ClothesSerializer(many=True) #一对多需要用many
     favor = serializers.SerializerMethodField()  # 添加新的返回值
