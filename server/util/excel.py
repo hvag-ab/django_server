@@ -6,6 +6,10 @@ from openpyxl.writer.excel import save_virtual_workbook
 from django.utils.encoding import escape_uri_path
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Side, Border, colors, PatternFill, Alignment, Font
+import csv
+from django.http import StreamingHttpResponse
+from typing import List, Union
+
 
 
 class ExcelToModel:
@@ -146,3 +150,39 @@ class ModelToExcel:
             return self.dict_data[field]
         except KeyError:
             return field
+
+
+class ModelToCSV:
+    class Echo:
+        """An object that implements just the write method of the file-like
+        interface.
+        """
+
+        def write(self, value):
+            """Write the value by returning it, instead of storing in a buffer."""
+            return value
+
+    def __init__(self, data: List[Union[list, dict]], filename: str = 'somefile'):
+        self.data = data
+        self.filename = filename
+
+    @property
+    def export_as_csv(self):
+        """A view that streams a large CSV file."""
+        # Generate a sequence of rows. The range is based on the maximum number of
+        # rows that can be handled by a single sheet in most spreadsheet
+        # applications.
+        pseudo_buffer = self.Echo()
+        writer = csv.writer(pseudo_buffer)
+        datas = []
+        for index, data in enumerate(self.data):
+            if isinstance(data, list):
+                datas.append(writer.writerow(data))
+            elif isinstance(data, dict):
+                if index == 0:
+                    datas.append(writer.writerow(list(data.keys())))
+                datas.append(writer.writerow(list(data.values())))
+        response = StreamingHttpResponse(datas, content_type="text/csv")
+        response['Content-Disposition'] = f'attachment; filename="{self.filename}.csv"'
+        response['Access-Control-Expose-Headers'] = 'Content-Disposition'
+        return response
