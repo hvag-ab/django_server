@@ -39,13 +39,20 @@ class Colors(BaseModel):
 
         # if self.pk: 添加   if not self.pk 表示更新
         #     do something
+        # 当使用查询集批量更新对象时 Colors.objects.filter(..).update(...)，将不会为每个对象调用save()方法，连pre_save和post_save也不会被调用
+        # 单条记录更新解决办法 批量不会调用
+        """
+        _t = Colors.objects.get(id=pk)
+        _t.__dict__.update(**colors)
+        _t.save()
+        """
 
         super().save(force_insert, force_update, using,
                      update_fields)
 
-    def delete(self, using=None, keep_parents=False):
+    def delete(self, using=None, keep_parents=False): # 单条记录删除的情况下调用 Colors.objects.get(id=pk).delete()
         # do something
-
+        # 当批量删除的时候，不会调用model的delete()方法，但delete是可以使用pre_delete或post_delete信号的
         return super().delete(using, keep_parents)  # 模型执行删除时 执行其他逻辑
 
 
