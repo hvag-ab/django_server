@@ -35,16 +35,19 @@ class Colors(BaseModel):
         # ]
 
     def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):  # 模型保存是 执行其他逻辑
-
+             update_fields=None):  # 模型保存or更新时 执行其他逻辑 仅试用单条记录创建or更新
+        
         # if self.pk: 添加   if not self.pk 表示更新
         #     do something
-        # 当使用查询集批量更新对象时 Colors.objects.filter(..).update(...)，将不会为每个对象调用save()方法，连pre_save和post_save也不会被调用
-        # 单条记录更新解决办法 批量不会调用
-        """
+        
+        #在批量创建或更新时 不会调用save（）、pre_save和post_save
+        
+        """单条记录更新
         _t = Colors.objects.get(id=pk)
         _t.__dict__.update(**colors)
         _t.save()
+        
+        # 单条记录创建  Colors.objects.create(**colors)
         """
 
         super().save(force_insert, force_update, using,
