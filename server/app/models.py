@@ -86,6 +86,8 @@ class MyFile(models.Model):
 
     image_url = models.ImageField(upload_to='media/images/%Y/%m/%d', null=False, blank=False, verbose_name='图片url')
     file_url = models.FileField(upload_to='media/files/%Y/%m/%d', null=False, blank=False, verbose_name='文件url')
+    #实际的路径就是 MEDIA_ROOT/{upload_to}/filename
+    #所以可以用uoload_to来指定文件存放的前缀路径
 
 
 # 信号
