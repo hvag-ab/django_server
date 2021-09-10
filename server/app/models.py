@@ -79,15 +79,51 @@ class Clothes(BaseModel):
 class Child(models.Model):
     name = models.CharField(max_length=10)  # 姓名
     favor = models.ManyToManyField('Colors', related_name='child_favor')  # 与颜色表为多对多
+    
+    
+"""
+from pathlib import Path
+from secrets import token_hex
+from django.utils.deconstruct import deconstructible
+# 主要是防止不同用户传文件  文件重名导致覆盖
+@deconstructible
+class TimeStampFileName:
+    def __init__(self, path):
+        self.path = Path(path)
 
+    def __call__(self, instance, filename):
+        filename = Path(filename)
+        extension = filename.suffix
+        file_stem = f"{filename.stem}_{token_hex(8)}"
+        return str(self.path / file_stem) + extension
+"""
 
 #文件操作
 class MyFile(models.Model):
 
     image_url = models.ImageField(upload_to='media/images/%Y/%m/%d', null=False, blank=False, verbose_name='图片url')
-    file_url = models.FileField(upload_to='media/files/%Y/%m/%d', null=False, blank=False, verbose_name='文件url')
+    file_url = models.FileField(upload_to=TimeStampFileName('media/'), null=False, blank=False, verbose_name='文件url')
     #实际的路径就是 MEDIA_ROOT/{upload_to}/filename
     #所以可以用uoload_to来指定文件存放的前缀路径
+
+# 枚举
+class EnumModel(models.Model):
+    class Paid(models.IntegerChoices):
+        wx = 0, '微信'
+        ali = 1, '支付宝'
+        other = 2, '其他'
+
+    pay_by = models.PositiveSmallIntegerField('支付方式', choices=Paid.choices, default=Paid.wx)
+"""
+Paid.choices --------- [(0, '微信'), (1, '支付宝'), (2, '其他')]
+Paid.labels  -------------- ['微信', '支付宝', '其他']   Paid.names - ['wx','ali','other]  Paid.values -- [0,1,2]
+Paid.wx.label --  '微信'  Paid.wx.value --- 0  Paid.wx.name -- wx
+obj = EnumModel.objects.create(pay_by=0)
+assert obj.pay_by == obj.Paid.wx == 0
+# 枚举参数检验 如果不检验直接存 那么也会存进去就会造成脏数据   应该判断 例如 if 3 in EnumModel.Paid: EnumModel.objects.create(pay_by=3)
+或者存入枚举类  EnumModel.objects.create(EnumModel.Paid.ali)
+"""
+
 
 
 # 信号
