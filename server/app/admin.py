@@ -9,6 +9,11 @@ admin.site.unregister(Token) # 不让Token模型显示
 admin.site.unregister(Group)
 admin.site.unregister(User) # 不让User模型显示 因为下面自定义User所以这里要取消默认的注册
 
+"""
+管理员admin 控制后台操作
+可以新建多个账户 这些账户必须是激活账户 is_active=1  然后通过 User permissions: 授权给这些账户操作模型 否则没有权限操作模型
+"""
+
 @admin.register(models.Clothes)
 class ClothModelAdmin(ModelAdmin):
     # 使用自定义的form表单验证功能
