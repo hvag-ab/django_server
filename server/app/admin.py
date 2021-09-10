@@ -109,6 +109,18 @@ class ClothModelAdmin(ModelAdmin):
     readonly_fields = ('total',) #readonly_fields，详细页面时，只读字段
 
     autocomplete_fields = ['color']#取出外键数据 特别是对于有很多链接的外键
+    
+    def has_add_permission(self, request):
+        # 禁用添加按钮
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        # 禁用删除按钮
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        # 禁用编辑
+        return False
 
 
 class ClothesInline(admin.TabularInline):
