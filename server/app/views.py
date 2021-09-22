@@ -139,7 +139,7 @@ class ListView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
-        return JsResponse(response.data)
+        return response
 
 
 class Retrive(generics.GenericAPIView):
