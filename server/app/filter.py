@@ -16,7 +16,7 @@ class ClothesFilter(django_filters.FilterSet):
     id_range = django_filters.NumericRangeFilter(field_name='id', lookup_expr='range') # id_range_min=1&id_range_max=3
     total_range = django_filters.NumericRangeFilter(field_name="total",lookup_expr='range', exclude=True)  # 反逻辑 不在这个区间中 如果是false就是在这个区间中
 
-    date = django_filters.DateTimeFromToRangeFilter(field_name='updated_time')
+    date = django_filters.DateTimeFromToRangeFilter(field_name='updated_time',lookup_expr='range')
     # 查询条件  date_after=2016-01-01&date_before=2016-02-01  或者 date_after=2016-01-01 或者 date_before=2016-02-01
     # 含有外键
     colors = django_filters.CharFilter(field_name='color__colors', lookup_expr='icontains')
@@ -58,9 +58,9 @@ class ColorsFilter(django_filters.FilterSet):
         # data = self.request.data or self.request.query_params
         if value is None:
             return queryset
-        cloth = Clothes.objects.filter(total=value).first()
-        if cloth:
-            return queryset.filter(**{'colors':cloth.color})
+        cs = Clothes.objects.filter(total=value).values_list('color__colors')
+        if cs:
+            return queryset.filter(**{'colors__in':cs})
         return queryset
 
     # 全局过滤queryset 例如排除 红色 # 在前面条件过滤之后执行这个方法
