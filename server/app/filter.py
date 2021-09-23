@@ -13,7 +13,7 @@ class ClothesFilter(django_filters.FilterSet):
     created_year = django_filters.NumberFilter(field_name='created_time', lookup_expr='year') #类似orm中取年部分
     created_year__gt = django_filters.NumberFilter(field_name='created_time', lookup_expr='year__gt') #取年部分且大于
 
-    id_range = django_filters.NumericRangeFilter(field_name='id', lookup_expr='range') # id_range_min=1&id_range_max=3
+    id_range = django_filters.NumericRangeFilter(field_name='id', lookup_expr='range') # id_range_start=1&id_range_stop=3
     total_range = django_filters.NumericRangeFilter(field_name="total",lookup_expr='range', exclude=True)  # 反逻辑 不在这个区间中 如果是false就是在这个区间中
     #total_exclude_min=1 total_exclude_max=3
     date = django_filters.DateTimeFromToRangeFilter(field_name='updated_time')
