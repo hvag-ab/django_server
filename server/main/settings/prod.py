@@ -66,16 +66,22 @@ CACHES = {
 #缓存使用 from django.core.cache import caches  cache=caches['account']
 
 # 日志写入mongo
-#LOGGING["handlers"]["mongo"] = {
-#     'level': 'INFO',
-#     'class': 'util.mongo_handler.MongoHandler',  # 保存到文件，自动切
-#     'database': 'mongo_logs',
-# }
-# LOGGING["loggers"]["mongo"]= {
-#             'handlers': ['mongo'],
-#             'propagate': True,
-#             'level': 'INFO',
-#         }
+LOGGING["handlers"]["mongo"] = {
+            'class': 'util.mongo_handler.MongoHandler',
+            'host': MONGO,  # 通过uri方式配置
+            'database_name': 'mongo_logs',
+            'collection': 'logs',
+            'level': 'INFO',
+            'capped': True,
+            'capped_max': 100000,
+            'capped_size': 100000000
+        },
+
+LOGGING["loggers"]["mongo"]= {
+            'handlers': ['mongo'],
+            'propagate': True,
+            'level': 'INFO',
+        }
 # logger = logging.getLogger('mongo')  logger.info('abc',extra={'name':'hvag'})  为了消除同一个message 可以加点salt logger.info(f'abc-{str(uuid.uuid1())}',extra={'name':'hvag'})
 
 
