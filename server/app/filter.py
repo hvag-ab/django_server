@@ -15,7 +15,7 @@ class ClothesFilter(django_filters.FilterSet):
 
     id_range = django_filters.NumericRangeFilter(field_name='id', lookup_expr='range') # id_range_start=1&id_range_stop=3
     total_range = django_filters.NumericRangeFilter(field_name="total",lookup_expr='range', exclude=True)  # 反逻辑 不在这个区间中 如果是false就是在这个区间中
-    #total_exclude_min=1 total_exclude_max=3
+    #total_exclude_start=1 total_exclude_stop=3
     date = django_filters.DateTimeFromToRangeFilter(field_name='updated_time')
     # 查询条件  date_stop=2016-01-01&date_start=2016-02-01  或者 date_stop=2016-01-01 或者 date_start=2016-02-01
     # 含有外键
