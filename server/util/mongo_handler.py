@@ -260,3 +260,24 @@ class BufferedMongoHandler(MongoHandler):
             self._timer_stopper()
         self.flush_to_mongo()
         self.close()
+
+"""
+capped=True 控制 MongoDB 使用固定集合
+MongoDB 固定集合（Capped Collections）是性能出色且有着固定大小的集合，对于大小固定，我们可以想象其就像一个环形队列，当集合空间用完后，
+再插入的元素就会覆盖最初始的头部的元素！
+capped_size 是整个集合空间大小，单位为【字节】
+capped_max 是集合文档个数上线，单位是【个】
+如果空间大小到达上限，则插入下一个文档时，会覆盖第一个文档；如果文档个数到达上限，同样插入下一个文档时，会覆盖第一个文档。
+两个参数上限判断取的是【与】的逻辑。
+
+   'mongo': {
+            'class': 'util.mongo_handler.MongoHandler',
+            'host': "mongodb://localhost:27017/",  # 通过uri方式配置
+            'database_name': 'mongo_logs',
+            'collection': 'logs',
+            'level': 'INFO',
+            'capped' : True,
+            'capped_max' : 100000, 
+            'capped_size' : 100000000
+        },
+"""
