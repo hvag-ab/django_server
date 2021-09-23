@@ -75,7 +75,7 @@ LOGGING["handlers"]["mongo"] = {
             'capped': True,
             'capped_max': 100000,
             'capped_size': 100000000
-        },
+        }
 
 LOGGING["loggers"]["mongo"]= {
             'handlers': ['mongo'],
