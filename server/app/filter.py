@@ -17,7 +17,7 @@ class ClothesFilter(django_filters.FilterSet):
     total_range = django_filters.NumericRangeFilter(field_name="total",lookup_expr='range', exclude=True)  # 反逻辑 不在这个区间中 如果是false就是在这个区间中
     #total_exclude_min=1 total_exclude_max=3
     date = django_filters.DateTimeFromToRangeFilter(field_name='updated_time')
-    # 查询条件  date_after=2016-01-01&date_before=2016-02-01  或者 date_after=2016-01-01 或者 date_before=2016-02-01
+    # 查询条件  date_stop=2016-01-01&date_start=2016-02-01  或者 date_stop=2016-01-01 或者 date_start=2016-02-01
     # 含有外键
     colors = django_filters.CharFilter(field_name='color__colors', lookup_expr='icontains')
     # 排序 GET /user/users/?sort=-id: -表示降序，+升序  如果多个排序字段 sort=[id,-total]
