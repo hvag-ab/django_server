@@ -151,38 +151,38 @@ class ModelToExcel:
             return field
 
 
-class ModelToCSV:
-    class Echo:
-        """An object that implements just the write method of the file-like
-        interface.
-        """
+class Echo:
+    """An object that implements just the write method of the file-like
+    interface.
+    """
+    def write(self, value):
+        """Write the value by returning it, instead of storing in a buffer."""
+        return value
 
-        def write(self, value):
-            """Write the value by returning it, instead of storing in a buffer."""
-            return value
+
+class ModelToCSV:
 
     def __init__(self, data: List[Union[list, dict]], filename: str = 'somefile'):
         self.data = data
         self.filename = filename
 
-    @property
-    def export_as_csv(self):
-        """A view that streams a large CSV file."""
-        # Generate a sequence of rows. The range is based on the maximum number of
-        # rows that can be handled by a single sheet in most spreadsheet
-        # applications.
-        pseudo_buffer = self.Echo()
-        writer = csv.writer(pseudo_buffer)
-        datas = []
+    def gen_data(self, writer):
         for index, data in enumerate(self.data):
             if isinstance(data, list):
-                datas.append(writer.writerow(data))
+                yield writer.writerow(data)
             elif isinstance(data, dict):
                 if index == 0:
-                    datas.append(writer.writerow(list(data.keys())))
-                datas.append(writer.writerow(list(data.values())))
-        response = StreamingHttpResponse(datas, content_type="text/csv")
-        response['Content-Disposition'] = f'attachment; filename="{self.filename}.csv"'
+                    yield writer.writerow(list(data.keys()))
+                yield writer.writerow(list(data.values()))
+
+    @property
+    def export_as_csv(self):
+        pseudo_buffer = Echo()
+        writer = csv.writer(pseudo_buffer)
+        data = self.gen_data(writer)
+        response = StreamingHttpResponse(data, content_type="text/csv")
+        response.charset = 'utf-8-sig'
+        response['Content-Disposition'] = "attachment;filename={}.csv".format(self.filename.encode('utf-8').decode('ISO-8859-1'))
         response['Access-Control-Expose-Headers'] = 'Content-Disposition'
         return response
 
