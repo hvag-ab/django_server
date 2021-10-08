@@ -2,26 +2,24 @@ from django.http import HttpResponse
 from openpyxl import Workbook
 import openpyxl
 from openpyxl.writer.excel import save_virtual_workbook
-from django.utils.encoding import escape_uri_path
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Side, Border, colors, PatternFill, Alignment, Font
 import csv
 from django.http import StreamingHttpResponse
-from typing import List, Union, Optional
-
+from typing import List, Union, Optional, Callable
 
 
 class ExcelToModel:
 
-    def __init__(self, file, header, serializer, first_row=1, sheet_no=0, request=None, save=True):
+    def __init__(self, file: bytes, header: dict, first_row: int = 1,
+                 sheet_no: int = 0, func: Optional[Callable] = None):
         """
         :param file: 上传的excel二进制数据
         :param header: # excel表头映射成模型的字段名
         :param serializer: # 序列化器 验证excel中的数据
         :param first_row: # 从哪一行开始获取数据
         :param sheet_no: # 获取excel中哪一个sheet
-        :param request: # request 对象
-        :param save: # 是否序列化后保存 这里的保存是一条条保存 如果数据量大 就影响数据库性能（建议批量保存 就save=false获取数据后在操作）
+        :param func: # 处理每行数据的额外函数 比如添加额外数据 或者 数据验证 或者 保存数据
         """
         self.wb = openpyxl.load_workbook(file)
         sheet_names = self.wb.sheetnames
@@ -32,41 +30,33 @@ class ExcelToModel:
         excel_header = [self.worksheet.cell(row=first_row, column=i).value for i in range(1, columns + 1)]
         self.header = [header[h] for h in excel_header]
         self.first_row = first_row
-        self.serializer = serializer
-        self.request = request
-        self.save = save
+        self.func = func
 
     @property
-    def excel2array(self):
+    def save(self):
         datas = []
         for row in self.worksheet.iter_rows(min_row=self.first_row + 1):
             row_data = [cell.value for cell in row]
             data = dict(zip(self.header, row_data))
-            serialize = self.serializer(data=data, context={'request': self.request})
-            if serialize.is_valid():
-                if self.save:
-                    serialize.save()
-                datas.append(serialize.data)
-            else:
-                return serialize.errors
-
+            if self.func:
+                data = self.func(data)
+            datas.append(data)
         self.wb.close()
-
         return datas
 
 
 class ModelToExcel:
 
     def __init__(self, headers: dict, data: [dict] = None, name: str = 'Sheet1', is_header: bool = False,
-                 dict_data: dict = None, ext: str = '.xlsx', title: str = None, merge: list = None, beauty: bool = True,
-                 cell_width=15):
+                 dict_data: dict = None, ext: str = 'xlsx', title: str = None, merge: list = None, beauty: bool = True,
+                 cell_width=15, need_header=True, skip_rows=0):
         """
         :param headers: excel表格头 {'定义的名称'：’字段名',....}
         :param data: 表格数据 [{'字段名':'字段的值’}]
         :param name: 表格的sheet名
         :param is_header: 是否值导出标题头
         :param dict_data: 映射字典 例如 {'color':1} ----{1:'red'} ----> {'color':'red'}
-        :param ext: 表格格式后缀 .xlsx or  .xls
+        :param ext: 表格格式后缀 xlsx or xls
         :param title: 表格标题名称
         :param merge: 合并单元格cell  例如['A1:A3'] 合并
         :param beauty: 是否美化格式 当数据量大的时候很费时间
@@ -81,12 +71,13 @@ class ModelToExcel:
         self.merge = merge
         self.beauty = beauty
         self.cell_width = cell_width
+        self.need_header = need_header
+        self.skip_rows = skip_rows
 
     @property
     def export_as_excel(self):
 
         field_names = list(self.headers.keys())  # 模型所有字段名
-        filename = escape_uri_path(self.name) + self.ext
         wb = Workbook()
         ws = wb.active
 
@@ -105,21 +96,24 @@ class ModelToExcel:
         else:
             headline = 1
 
-        ws.append(field_names)
+        if self.need_header:
+            ws.append(field_names)
 
         orange_fill = PatternFill(fill_type='solid', fgColor="A6D5B0")
         for ci in range(len(field_names)):
-            ws.cell(row=headline, column=ci + 1).fill = orange_fill
+            if self.need_header:
+                ws.cell(row=headline, column=ci + 1).fill = orange_fill
             col_letter = get_column_letter(ci + 1)
             ws.column_dimensions[col_letter].width = self.cell_width
 
         if not self.is_header:
-            for obj in self.data:
+            for ind, obj in enumerate(self.data):
                 if self.dict_data:
                     data = [self.convert(obj.get(v)) for v in self.headers.values()]
                 else:
                     data = [obj.get(v) for v in self.headers.values()]
-                row = ws.append(data)
+                if ind >= self.skip_rows:
+                    row = ws.append(data)
 
             if self.merge:
                 for mer in self.merge:
@@ -137,9 +131,10 @@ class ModelToExcel:
                                                                left=Side(border_style='thin', color=colors.BLACK),
                                                                right=Side(border_style='thin', color=colors.BLACK))
 
-        response = HttpResponse(content=save_virtual_workbook(wb),content_type='application/msexcel')
+        response = HttpResponse(content=save_virtual_workbook(wb), content_type='application/msexcel')
         response['Access-Control-Expose-Headers'] = 'Content-Disposition'
-        response['Content-Disposition'] = f'attachment; filename={filename}'
+        response[
+            'Content-Disposition'] = f"attachment; filename={self.name.encode('utf-8').decode('ISO-8859-1')}.{self.ext}"
         wb.close()
         return response
 
@@ -155,6 +150,7 @@ class Echo:
     """An object that implements just the write method of the file-like
     interface.
     """
+
     def write(self, value):
         """Write the value by returning it, instead of storing in a buffer."""
         return value
@@ -182,9 +178,11 @@ class ModelToCSV:
         data = self.gen_data(writer)
         response = StreamingHttpResponse(data, content_type="text/csv")
         response.charset = 'utf-8-sig'
-        response['Content-Disposition'] = "attachment;filename={}.csv".format(self.filename.encode('utf-8').decode('ISO-8859-1'))
+        response['Content-Disposition'] = "attachment;filename={}.csv".format(
+            self.filename.encode('utf-8').decode('ISO-8859-1'))
         response['Access-Control-Expose-Headers'] = 'Content-Disposition'
         return response
+
 
     
 import re, stat, mimetypes, os
