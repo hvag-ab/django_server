@@ -47,6 +47,7 @@ class MyRequest(Request):
             f'task {self.task.name}[{self.id}] has start, params_dict={self.request_dict}'
             f'args-{self.args},kwargs-{self.kwargs}'
         )
+    ## self.args and self.kwargs 来源于 post_file.apply_async(args=(),kwargs={})
 
 class TaskMonitor(celery.Task):
 
@@ -66,7 +67,7 @@ class TaskMonitor(celery.Task):
 
 
 @celery_app.task(base=TaskMonitor, bind=True, name='post_file')
-def post_file(self, file_names, **kwargs):
+def post_file(self, file_names, **kwargs): # 这里的**kwargs 来源于 post_file.apply_async(args=(file_name,),kwargs={'id':1}) 
     logger.info(self.request.__dict__)
     print(self.AsyncResult(self.request.id).state)
     try:
