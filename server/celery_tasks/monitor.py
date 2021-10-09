@@ -66,7 +66,7 @@ class TaskMonitor(celery.Task):
 
 
 @celery_app.task(base=TaskMonitor, bind=True, name='post_file')
-def post_file(self, file_names):
+def post_file(self, file_names, **kwargs):
     logger.info(self.request.__dict__)
     print(self.AsyncResult(self.request.id).state)
     try:
