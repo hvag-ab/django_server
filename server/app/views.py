@@ -220,16 +220,21 @@ class Download(generics.ListAPIView):
 class DownloadFile(APIView):
 
     def get(self, request, *args, **kwargs):
-        no = request.query_params.get("no")
-        file_name = f'{no}.zip'
-        file_full_path = getattr(settings,'FILE_FOLDER','') +  '/' + file_name
+        # 文件 图片 放在media目录下  js css 等 放在 static目录下
+        data = request.query_params
+        media = settings.MEDIA_ROOT
+        file = media / f'your file name'
+        suffix = file.suffix
         try:
-            file=open(file_full_path,'rb')
+            file=file.open('rb')
         except:
             return JsResponse(code=False,msg='解析文件错误')
-        response =FileResponse(file,filename=file_name)
+        response =FileResponse(file)
+        response['Content-Disposition'] = "attachment;filename={}{}".format(
+            name.encode('utf-8').decode('ISO-8859-1'),suffix)
         response['Access-Control-Expose-Headers'] = 'Content-Disposition'
         return response
+
 
 ##### 页面缓存
 
