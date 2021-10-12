@@ -37,7 +37,7 @@ class Colors(BaseModel):
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):  # 模型保存or更新时 执行其他逻辑 仅试用单条记录创建or更新
         
-        # if self.pk: 添加   if not self.pk 表示更新
+        # if not self.pk: 添加   if self.pk 表示更新
         #     do something
         
         #在批量创建或更新时 不会调用save（）、pre_save和post_save
