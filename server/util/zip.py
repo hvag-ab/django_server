@@ -4,7 +4,7 @@ from typing import Any, Callable, Optional
 from io import BytesIO
 
 
-def zip(dirpath=None, files_paths=None, outfolder: Optional[str] = None, file_name: str = 'x',
+def zip_files(dirpath=None, files_paths=None, outfolder: Optional[str] = None, file_name: str = 'x',
         exclude_file: Optional[list] = None):
     """
     压缩指定文件夹
