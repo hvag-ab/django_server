@@ -44,12 +44,13 @@ def zip(dirpath=None, files_paths=None, outfolder: Optional[str] = None, file_na
 
 
 # 多个excel直接在内存中压缩 方便直接传给前端
-def zip_bytes(list_: list, func: Callable[[Any], bytes], suffix:str="xlsx") -> bytes:
+def zip_bytes(list_: list, func: Callable[[Any], BytesIO], suffix:str="xlsx") -> bytes:
     buffer = BytesIO()
     zfile = zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED, allowZip64=False)
 
     for i, obj in enumerate(list_):
-        bytes_obj = func(obj)
+        bytesio = func(obj)
+        bytes_obj = bytesio.read()
         zfile.writestr(f"{i}.{suffix}", bytes_obj)
     zfile.close()
     buffer.seek(0)
