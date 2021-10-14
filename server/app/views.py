@@ -179,6 +179,7 @@ class UploadFileView(generics.CreateAPIView):
     # serializer_class = ListImgSerializer 解析多张文件视图的序列化器
     parser_classes = (
     MultiPartParser, FileUploadParser,)  # 解析file 使request.data包含file信息解析file_obj = request.data['file']
+    # 注意如果前端传入多个files 一定要 file_objs = request.data.getlist('files') 否则只能获取一个
 
 
 class UploadExcel(generics.CreateAPIView):
