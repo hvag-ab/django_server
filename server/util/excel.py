@@ -1,18 +1,43 @@
-from django.http import HttpResponse
-from openpyxl import Workbook
 import openpyxl
 from openpyxl.writer.excel import save_virtual_workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Side, Border, colors, PatternFill, Alignment, Font
 import csv
-from django.http import StreamingHttpResponse
-from typing import List, Union, Optional, Callable
+from django.http import HttpResponse, StreamingHttpResponse
+from typing import List, Union, Optional, Callable, Any
+from _io import _IOBase
+
+buffer = Union[bytes, _IOBase]
+DATA = Union[List[dict], List[Any]]
 
 
-class ExcelToModel:
+def file_response(content: buffer, filename: str, ext: str, block_size=4096) -> HttpResponse:
+    if ext == 'xlsx':
+        content_type = 'application/msexcel'
+    elif ext == 'csv':
+        content_type = 'text/csv'
+    else:
+        content_type = 'application/octet-stream'
+    if isinstance(content, bytes):
+        response = HttpResponse(content=content, content_type=content_type)
+    elif isinstance(content, _IOBase):
+        if hasattr(content, 'read'):
+            chunk = iter(lambda: content.read(block_size), b'')
+        else:
+            chunk = content
+        response = StreamingHttpResponse(streaming_content=chunk, content_type=content_type)
+    else:
+        raise TypeError(f'content 参数 的类型{type(content)}暂不支持')
+    response['Access-Control-Expose-Headers'] = 'Content-Disposition'
+    response[
+        'Content-Disposition'] = f"attachment; filename={filename.encode('utf-8').decode('ISO-8859-1')}.{ext}"
+    return response
 
-    def __init__(self, file: bytes, header: dict, first_row: int = 1,
-                 sheet_no: int = 0, func: Optional[Callable] = None):
+
+class ExcelToData:
+
+    def __init__(self, file: buffer, header: Optional[dict] = None, first_row: int = 1,
+                 sheet_no: int = 0, func: Optional[Callable[[dict], Any]] = None):
         """
         :param file: 上传的excel二进制数据
         :param header: # excel表头映射成模型的字段名
@@ -28,13 +53,16 @@ class ExcelToModel:
         # self.nrows = self.worksheet.max_row
         columns = self.worksheet.max_column
         excel_header = [self.worksheet.cell(row=first_row, column=i).value for i in range(1, columns + 1)]
-        self.header = [header[h] for h in excel_header]
+        if header:
+            self.header = [header.get(h, h) for h in excel_header]
+        else:
+            self.header = excel_header
         self.first_row = first_row
         self.func = func
 
     @property
-    def save(self):
-        datas = []
+    def save(self) -> List[Any]:
+        datas: List[Any] = []
         for row in self.worksheet.iter_rows(min_row=self.first_row + 1):
             row_data = [cell.value for cell in row]
             data = dict(zip(self.header, row_data))
@@ -45,27 +73,50 @@ class ExcelToModel:
         return datas
 
 
-class ModelToExcel:
+class DataToExcel:
 
-    def __init__(self, headers: dict, data: [dict] = None, name: str = 'Sheet1', is_header: bool = False,
-                 dict_data: dict = None, ext: str = 'xlsx', title: str = None, merge: list = None, beauty: bool = True,
-                 cell_width=15, need_header=True, skip_rows=0):
+    def __init__(self, data: DATA = None, headers: Union[dict, list] = None, name: str = 'Sheet1',
+                 is_header: bool = False,
+                 ext: str = 'xlsx', title: str = None, merge: list = None, beauty: bool = True,
+                 cell_width=15, need_header=True, skip_rows=0, func: Callable[[dict], Any] = None):
         """
         :param headers: excel表格头 {'定义的名称'：’字段名',....}
         :param data: 表格数据 [{'字段名':'字段的值’}]
         :param name: 表格的sheet名
         :param is_header: 是否值导出标题头
-        :param dict_data: 映射字典 例如 {'color':1} ----{1:'red'} ----> {'color':'red'}
+        :param func: 映射函数 额外处理data数据
         :param ext: 表格格式后缀 xlsx or xls
         :param title: 表格标题名称
         :param merge: 合并单元格cell  例如['A1:A3'] 合并
         :param beauty: 是否美化格式 当数据量大的时候很费时间
         """
+        if data:
+            first_data = data[0]
+            if isinstance(first_data, dict):
+                if not headers:
+                    self.headers = first_data
+                else:
+                    if not isinstance(headers, dict):
+                        raise ValueError('data是List[dict], header 必须是 字典')
+            else:
+                if not headers:
+                    raise ValueError('data是List[list], header 不能为空')
+                else:
+                    if not isinstance(headers, list):
+                        raise ValueError('data是List[list], header 必须 为 列表')
+                    if len(headers) != len(first_data):
+                        raise ValueError('data是List[list], header 长度不匹配')
+        else:
+            if not headers:
+                raise KeyError('header 和 data 不能同时为空')
         self.data = data
         self.headers = headers
+        if isinstance(self.headers, dict):
+            self.excel_field_names = list(self.headers.keys())  # 模型所有字段名
+        else:
+            self.excel_field_names = self.headers
         self.name = name
         self.is_header = is_header
-        self.dict_data = dict_data
         self.ext = ext
         self.title = title
         self.merge = merge
@@ -73,16 +124,16 @@ class ModelToExcel:
         self.cell_width = cell_width
         self.need_header = need_header
         self.skip_rows = skip_rows
+        self.func = func
 
     @property
-    def export_as_excel(self):
+    def export(self):
 
-        field_names = list(self.headers.keys())  # 模型所有字段名
-        wb = Workbook()
+        wb = openpyxl.Workbook()
         ws = wb.active
 
         if self.title:
-            leng = len(field_names)
+            leng = len(self.excel_field_names)
             first_cont = [self.title] + [''] * (leng - 1)
             last_col = get_column_letter(leng)
 
@@ -97,10 +148,10 @@ class ModelToExcel:
             headline = 1
 
         if self.need_header:
-            ws.append(field_names)
+            ws.append(self.excel_field_names)
 
         orange_fill = PatternFill(fill_type='solid', fgColor="A6D5B0")
-        for ci in range(len(field_names)):
+        for ci in range(len(self.excel_field_names)):
             if self.need_header:
                 ws.cell(row=headline, column=ci + 1).fill = orange_fill
             col_letter = get_column_letter(ci + 1)
@@ -108,12 +159,16 @@ class ModelToExcel:
 
         if not self.is_header:
             for ind, obj in enumerate(self.data):
-                if self.dict_data:
-                    data = [self.convert(obj.get(v)) for v in self.headers.values()]
+                if isinstance(obj, list):
+                    data = obj
+                elif isinstance(obj, dict):
+                    if self.func:
+                        obj = self.func(obj)
+                    data = [obj.get(v, v) for v in self.headers.values()]
                 else:
-                    data = [obj.get(v) for v in self.headers.values()]
+                    raise ValueError('data 必须是 List[list or dict]')
                 if ind >= self.skip_rows:
-                    row = ws.append(data)
+                    ws.append(data)
 
             if self.merge:
                 for mer in self.merge:
@@ -131,19 +186,9 @@ class ModelToExcel:
                                                                left=Side(border_style='thin', color=colors.BLACK),
                                                                right=Side(border_style='thin', color=colors.BLACK))
 
-        response = HttpResponse(content=save_virtual_workbook(wb), content_type='application/msexcel')
-        response['Access-Control-Expose-Headers'] = 'Content-Disposition'
-        response[
-            'Content-Disposition'] = f"attachment; filename={self.name.encode('utf-8').decode('ISO-8859-1')}.{self.ext}"
+        response = file_response(save_virtual_workbook(wb), self.name, self.ext)
         wb.close()
         return response
-
-    def convert(self, field):
-
-        try:
-            return self.dict_data[field]
-        except KeyError:
-            return field
 
 
 class Echo:
@@ -156,7 +201,7 @@ class Echo:
         return value
 
 
-class ModelToCSV:
+class DataToCSV:
 
     def __init__(self, data: List[Union[list, dict]], filename: str = 'somefile'):
         self.data = data
@@ -172,7 +217,7 @@ class ModelToCSV:
                 yield writer.writerow(list(data.values()))
 
     @property
-    def export_as_csv(self):
+    def export(self):
         pseudo_buffer = Echo()
         writer = csv.writer(pseudo_buffer)
         data = self.gen_data(writer)
@@ -183,19 +228,18 @@ class ModelToCSV:
         response['Access-Control-Expose-Headers'] = 'Content-Disposition'
         return response
 
-
     
 import re, stat, mimetypes, os
 from pathlib import Path
 from django.utils.http import http_date
 from django.views.static import was_modified_since
-from django.http import FileResponse, HttpRequest, HttpResponseNotModified, Http404
+from django.http import FileResponse
 
 
 # 支持大文件的断点续传（暂停/继续下载）
-class FileDownload:
+class BigFileDownload:
 
-    def __init__(self, folder: str, filename: str, request: Optional[HttpRequest] = None,
+    def __init__(self, folder: str, filename: str, request: Optional["HttpRequest"] = None,
                  file_name: Optional[str] = None):
         """
         :param folder: 下载文件所在的文件夹
@@ -206,18 +250,18 @@ class FileDownload:
         self.request = request
         self.path = Path(folder) / filename
         if not self.path.exists():
-            raise Http404
+            raise ValueError('文件不存在')
         if file_name is None:
             self.file_name = filename
         self.stat = self.path.stat()
 
     @property
-    def export_big(self):
+    def export(self):
 
         # 判断下载过程中文件是否被修改过
         if not was_modified_since(self.request.META.get('HTTP_IF_MODIFIED_SINCE'),
                                   self.stat.st_mtime, self.stat.st_size):
-            return HttpResponseNotModified()
+            raise ValueError('文件已被修改')
 
         # 获取文件的content_type
         content_type, encoding = mimetypes.guess_type(self.path)
@@ -253,12 +297,5 @@ class FileDownload:
 
         # 'Cache-Control'控制浏览器缓存行为，此处禁止浏览器缓存，参考：https://blog.csdn.net/cominglately/article/details/77685214
         response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response['Access-Control-Expose-Headers'] = 'Content-Disposition'
-        return response
-
-    @property
-    def export(self):
-        file = self.path.open('rb')
-        response = FileResponse(file, filename=self.file_name)
         response['Access-Control-Expose-Headers'] = 'Content-Disposition'
         return response
