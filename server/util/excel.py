@@ -98,6 +98,8 @@ class DataToExcel:
                 else:
                     if not isinstance(headers, dict):
                         raise ValueError('data是List[dict], header 必须是 字典')
+                    else:
+                        self.headers = headers
             else:
                 if not headers:
                     raise ValueError('data是List[list], header 不能为空')
@@ -106,11 +108,13 @@ class DataToExcel:
                         raise ValueError('data是List[list], header 必须 为 列表')
                     if len(headers) != len(first_data):
                         raise ValueError('data是List[list], header 长度不匹配')
+                    self.headers = headers
         else:
             if not headers:
                 raise KeyError('header 和 data 不能同时为空')
+            else:
+                self.headers = headers
         self.data = data
-        self.headers = headers
         if isinstance(self.headers, dict):
             self.excel_field_names = list(self.headers.keys())  # 模型所有字段名
         else:
