@@ -94,7 +94,7 @@ class DataToExcel:
             first_data = data[0]
             if isinstance(first_data, dict):
                 if not headers:
-                    self.headers = first_data
+                    self.headers = {k:k for k in first_data.keys()}
                 else:
                     if not isinstance(headers, dict):
                         raise ValueError('data是List[dict], header 必须是 字典')
