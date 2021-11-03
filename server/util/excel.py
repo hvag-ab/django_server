@@ -4,10 +4,11 @@ from openpyxl.utils import get_column_letter
 from openpyxl.styles import Side, Border, colors, PatternFill, Alignment, Font
 import csv
 from django.http import HttpResponse, StreamingHttpResponse
+from django.core.files.base import File
 from typing import List, Union, Optional, Callable, Any
 from _io import _IOBase
 
-buffer = Union[bytes, _IOBase]
+buffer = Union[bytes, _IOBase, File]
 DATA = Union[List[dict], List[Any]]
 
 
@@ -20,7 +21,8 @@ def file_response(content: buffer, filename: str, ext: str, block_size=4096) -> 
         content_type = 'application/octet-stream'
     if isinstance(content, bytes):
         response = HttpResponse(content=content, content_type=content_type)
-    elif isinstance(content, _IOBase):
+    elif isinstance(content, (_IOBase,File)):
+        # File类型是django FileField中的类型需要支持 file_response(obj.doc.file,filename=obj.doc.name,ext='doc')
         if hasattr(content, 'read'):
             chunk = iter(lambda: content.read(block_size), b'')
         else:
