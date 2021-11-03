@@ -22,7 +22,8 @@ def file_response(content: buffer, filename: str, ext: str, block_size=4096) -> 
     if isinstance(content, bytes):
         response = HttpResponse(content=content, content_type=content_type)
     elif isinstance(content, (_IOBase,File)):
-        # File类型是django FileField中的类型需要支持 file_response(obj.doc.file,filename=obj.doc.name,ext='doc')
+        # doc = models.FileField(verbose_name='文档说明',upload_to='cwtools/')
+        # File类型是django FileField中的类型需要支持 file_response(obj.doc.file,filename=obj.doc.name,ext='doc') 
         if hasattr(content, 'read'):
             chunk = iter(lambda: content.read(block_size), b'')
         else:
