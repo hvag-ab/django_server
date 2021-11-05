@@ -12,7 +12,7 @@ from rest_framework import status
 # from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from util.excel import ModelToExcel
+from util.file import ModelToExcel
 from util.version import APIVersioning
 from .filter import ClothesFilter, ColorsFilter
 from .models import Clothes, Colors, MyFile
