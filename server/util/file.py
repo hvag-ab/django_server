@@ -77,7 +77,6 @@ class ExcelToData:
         """
         :param file: 上传的excel二进制数据
         :param header: # excel表头映射成模型的字段名
-        :param serializer: # 序列化器 验证excel中的数据
         :param first_row: # 从哪一行开始获取数据
         :param sheet_no: # 获取excel中哪一个sheet
         :param func: # 处理每行数据的额外函数 比如添加额外数据 或者 数据验证 或者 保存数据
