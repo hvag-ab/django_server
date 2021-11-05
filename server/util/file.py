@@ -1,45 +1,78 @@
+import csv,tempfile, zipfile
+
 import openpyxl
-from openpyxl.writer.excel import save_virtual_workbook
+from openpyxl.writer.excel import ExcelWriter
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Side, Border, colors, PatternFill, Alignment, Font
-import csv
 from django.http import HttpResponse, StreamingHttpResponse
-from django.core.files.base import File
-from typing import List, Union, Optional, Callable, Any
-from _io import _IOBase
+from typing import List, Union, Optional, Callable, Any, IO
 
-buffer = Union[bytes, _IOBase, File]
+Buffer = Union[bytes, IO]
 DATA = Union[List[dict], List[Any]]
 
 
-def file_response(content: buffer, filename: str, ext: str, block_size=4096) -> HttpResponse:
+def file_response(buffer: Buffer,
+                  filename: str,
+                  ext: str,
+                  block_size: int = 4096) -> HttpResponse:
     if ext == 'xlsx':
         content_type = 'application/msexcel'
     elif ext == 'csv':
         content_type = 'text/csv'
     else:
         content_type = 'application/octet-stream'
-    if isinstance(content, bytes):
-        response = HttpResponse(content=content, content_type=content_type)
-    elif isinstance(content, (_IOBase,File)):
-        # doc = models.FileField(verbose_name='文档说明',upload_to='cwtools/')
-        # File类型是django FileField中的类型需要支持 file_response(obj.doc.file,filename=obj.doc.name,ext='doc') 
-        if hasattr(content, 'read'):
-            chunk = iter(lambda: content.read(block_size), b'')
-        else:
-            chunk = content
-        response = StreamingHttpResponse(streaming_content=chunk, content_type=content_type)
+    if isinstance(buffer, bytes):
+        response = HttpResponse(content=buffer, content_type=content_type)
     else:
-        raise TypeError(f'content 参数 的类型{type(content)}暂不支持')
+        try:
+            if hasattr(buffer, 'read'):
+                chunk = iter(lambda: buffer.read(block_size), b'')
+            else:
+                chunk = buffer
+            response = StreamingHttpResponse(streaming_content=chunk, content_type=content_type)
+        except:
+            raise TypeError(f'content 参数 的类型{type(buffer)}暂不支持')
     response['Access-Control-Expose-Headers'] = 'Content-Disposition'
-    response[
-        'Content-Disposition'] = f"attachment; filename={filename.encode('utf-8').decode('ISO-8859-1')}.{ext}"
+    response['Content-Disposition'] = f"attachment; filename={filename.encode('utf-8').decode('ISO-8859-1')}.{ext}"
+    if ext == 'csv':
+        response.charset = 'utf-8-sig'
+    return response
+
+
+def nginx_file_response(nginx_file_path:str,
+                  filename: str,
+                  ext: str) -> HttpResponse:
+    """
+    使用sendfile的机制："传统的Web服务器在处理文件下载的时候，总是先读入文件内容到应用程序内存，然后再把内存当中的内容发送给客户端浏览器。这种方式在应付当今大负载网站会消耗更多的服务器资源。
+    sendfile是现代操作系统支持的一种高性能网络IO方式，操作系统内核的sendfile调用可以将文件内容直接推送到网卡的buffer当中，从而避免了Web服务器读写文件的开销，实现了“零拷贝”模式
+    nginx配置文件：
+    # file save path: /var/www/files/myfile.tar.gz
+    # When passed URI /protected_files/myfile.tar.gz
+    # nginx_file_url = "/protected_files/myfile.tar.gz"
+    这样当向django view函数发起request时，django负责对用户权限进行判断或者做些其它事情，
+    然后向nginx转发url为/protected_files/filename的请求，nginx服务器负责文件/var/www/protected_files/filename的下载：
+    location /protected_files {
+        internal; # internal指的是Nginx的内部命令，意思是只有内部请求才能使用的，外部请求返回404
+        alias /var/www/files;
+    }
+    """
+    if ext == 'xlsx':
+        content_type = 'application/msexcel'
+    elif ext == 'csv':
+        content_type = 'text/csv'
+    else:
+        content_type = 'application/octet-stream'
+    response = HttpResponse()
+    response['Content_Type'] = content_type
+    response['Access-Control-Expose-Headers'] = 'Content-Disposition'
+    response['Content-Disposition'] = f"attachment; filename={filename.encode('utf-8').decode('ISO-8859-1')}.{ext}"
+    response['X-Accel-Redirect'] = nginx_file_path
     return response
 
 
 class ExcelToData:
 
-    def __init__(self, file: buffer, header: Optional[dict] = None, first_row: int = 1,
+    def __init__(self, file: Buffer, header: Optional[dict] = None, first_row: int = 1,
                  sheet_no: int = 0, func: Optional[Callable[[dict], Any]] = None):
         """
         :param file: 上传的excel二进制数据
@@ -97,7 +130,7 @@ class DataToExcel:
             first_data = data[0]
             if isinstance(first_data, dict):
                 if not headers:
-                    self.headers = {k:k for k in first_data.keys()}
+                    self.headers = dict(zip(first_data.keys(), first_data.keys()))
                 else:
                     if not isinstance(headers, dict):
                         raise ValueError('data是List[dict], header 必须是 字典')
@@ -193,8 +226,13 @@ class DataToExcel:
                                                                left=Side(border_style='thin', color=colors.BLACK),
                                                                right=Side(border_style='thin', color=colors.BLACK))
 
-        response = file_response(save_virtual_workbook(wb), self.name, self.ext)
+        tmp = tempfile.NamedTemporaryFile()
+        archive = zipfile.ZipFile(tmp, 'w', zipfile.ZIP_DEFLATED, allowZip64=True)
+        writer = ExcelWriter(wb, archive)
+        writer.save()
+        tmp.seek(0)
         wb.close()
+        response = file_response(tmp, self.name, self.ext)
         return response
 
 
@@ -218,6 +256,7 @@ class DataToCSV:
         for index, data in enumerate(self.data):
             if isinstance(data, list):
                 yield writer.writerow(data)
+
             elif isinstance(data, dict):
                 if index == 0:
                     yield writer.writerow(list(data.keys()))
@@ -228,81 +267,32 @@ class DataToCSV:
         pseudo_buffer = Echo()
         writer = csv.writer(pseudo_buffer)
         data = self.gen_data(writer)
-        response = StreamingHttpResponse(data, content_type="text/csv")
-        response.charset = 'utf-8-sig'
-        response['Content-Disposition'] = "attachment;filename={}.csv".format(
-            self.filename.encode('utf-8').decode('ISO-8859-1'))
-        response['Access-Control-Expose-Headers'] = 'Content-Disposition'
-        return response
+        return file_response(data,filename=self.filename,ext='csv')
 
-    
-import re, stat, mimetypes, os
+
+from django.conf import settings
 from pathlib import Path
-from django.utils.http import http_date
-from django.views.static import was_modified_since
-from django.http import FileResponse
 
 
-# 支持大文件的断点续传（暂停/继续下载）
-class BigFileDownload:
+def zip_files(zipname: str, dir: str = None, file_names: List[str] = None):
+    """
+    :param zipname: zip文件名
+    :param dir: 压缩文件所在的文件夹
+    :param file_names: 文件名s
+    :return:
+    """
+    if dir is None:
+        dir = settings.MEDIA_ROOT
+    else:
+        dir = Path(dir)
 
-    def __init__(self, folder: str, filename: str, request: Optional["HttpRequest"] = None,
-                 file_name: Optional[str] = None):
-        """
-        :param folder: 下载文件所在的文件夹
-        :param filename: 下载文件名 必须带上文件后缀名 例如a.zip  a.jpg
-        :param request: request对象
-        :param file_name: 保存文件名 默认等于 下载文件名
-        """
-        self.request = request
-        self.path = Path(folder) / filename
-        if not self.path.exists():
-            raise ValueError('文件不存在')
-        if file_name is None:
-            self.file_name = filename
-        self.stat = self.path.stat()
-
-    @property
-    def export(self):
-
-        # 判断下载过程中文件是否被修改过
-        if not was_modified_since(self.request.META.get('HTTP_IF_MODIFIED_SINCE'),
-                                  self.stat.st_mtime, self.stat.st_size):
-            raise ValueError('文件已被修改')
-
-        # 获取文件的content_type
-        content_type, encoding = mimetypes.guess_type(self.path)
-        content_type = content_type or 'application/octet-stream'
-
-        # 计算读取文件的起始位置
-        start_bytes = re.search(r'bytes=(\d+)-', self.request.META.get('HTTP_RANGE', ''), re.S)
-        start_bytes = int(start_bytes.group(1)) if start_bytes else 0
-
-        # 打开文件并移动下标到起始位置，客户端点击继续下载时，从上次断开的点继续读取
-        the_file = self.path.open('rb')
-        the_file.seek(start_bytes, os.SEEK_SET)
-
-        # status=200表示下载开始，status=206表示下载暂停后继续，为了兼容火狐浏览器而区分两种状态
-        # 关于django的response对象，参考：https://www.cnblogs.com/scolia/p/5635546.html
-        # 关于response的状态码，参考：https://www.cnblogs.com/DeasonGuan/articles/Hanami.html
-        # FileResponse默认block_size = 4096，因此迭代器每次读取4KB数据
-        response = FileResponse(the_file, content_type=content_type, status=206 if start_bytes > 0 else 200,
-                                filename=self.file_name)
-
-        # 'Last-Modified'表示文件修改时间，与'HTTP_IF_MODIFIED_SINCE'对应使用，参考：https://www.jianshu.com/p/b4ecca41bbff
-        response['Last-Modified'] = http_date(self.stat.st_mtime)
-
-        # 这里'Content-Length'表示剩余待传输的文件字节长度
-        if stat.S_ISREG(self.stat.st_mode):
-            response['Content-Length'] = self.stat.st_size - start_bytes
-        if encoding:
-            response['Content-Encoding'] = encoding
-
-        # 'Content-Range'的'/'之前描述响应覆盖的文件字节范围，起始下标为0，'/'之后描述整个文件长度，与'HTTP_RANGE'对应使用
-        # 参考：http://liqwei.com/network/protocol/2011/886.shtml
-        response['Content-Range'] = 'bytes %s-%s/%s' % (start_bytes, self.stat.st_size - 1, self.stat.st_size)
-
-        # 'Cache-Control'控制浏览器缓存行为，此处禁止浏览器缓存，参考：https://blog.csdn.net/cominglately/article/details/77685214
-        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response['Access-Control-Expose-Headers'] = 'Content-Disposition'
-        return response
+    temp = tempfile.NamedTemporaryFile()
+    archive = zipfile.ZipFile(temp, 'w', zipfile.ZIP_DEFLATED)
+    for file in file_names:
+        file_p = dir / file
+        if not file_p.is_file():
+            raise ValueError(f'{str(file_p)} 并不是一个文件')
+        archive.write(file_p)
+    archive.close()
+    temp.seek(0)
+    return file_response(temp, filename=zipname, ext='zip')
