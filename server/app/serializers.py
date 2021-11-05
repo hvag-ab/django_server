@@ -2,7 +2,7 @@ from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
 
-from util.excel import ExcelToModel
+from util.file import ExcelToModel
 from .models import Colors, Clothes, MyFile
 from django.contrib.auth.models import User
 
