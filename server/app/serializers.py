@@ -2,7 +2,7 @@ from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
 
-from util.file import ExcelToModel
+from util.file import ExcelToData
 from .models import Colors, Clothes, MyFile
 from django.contrib.auth.models import User
 
@@ -189,9 +189,8 @@ class ExcelSerializer(serializers.Serializer):
         if file.size > 25 * 1024 * 1024:
             raise serializers.ValidationError('上传文件过大')
 
-        datas = ExcelToModel(file=file, header=self.header, serializer=LoginSerializer,
-                             request=self.context['request']).excel2array
-        # 如果数据量大 就批量导入
+        datas = ExcelToData(file=file, header=self.header).save
+
         for data in datas:
             print(type(data))  # dict
             # do something
