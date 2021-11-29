@@ -33,7 +33,7 @@ DecimalField(max_digits=6, decimal_places=4)
 # 一.序列化 模型 - json  
 # 1. 模型序列化   
 class ColorsSerializer(serializers.ModelSerializer):
-    # clothes =  ClothesSerializer(many=True) #一对多需要用many
+    clothes_set =  ClothesSerializer(many=True) #反向序列化 Clothes关联colors 写法 Clothes[.lower()]_set 也就是小写类名_set
     favor = serializers.SerializerMethodField()  # 添加新的返回值
 
     class Meta:
@@ -46,7 +46,7 @@ class ColorsSerializer(serializers.ModelSerializer):
 
 class ClothesSerializer(serializers.ModelSerializer):
     # 这里的外键包含OneToOneField ForeignKey  ManyToManyField
-    color = ColorsSerializer()  # 首先关联的模型序列化 #多对一
+    color = ColorsSerializer()  # 首先关联的模型序列化 #正向序列化 colors必须是Clothes属性
     # 另一种 只序列化一个外键模型的字段 color是Clothes 外键字段 然后拿关联的模型的colors字段值
     colors = serializers.CharField(source='color.colors')
 
