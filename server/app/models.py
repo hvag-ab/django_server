@@ -21,6 +21,10 @@ class Colors(BaseModel):
 
     class Meta:
         db_table = "colors"  # 在数据库中的表名 当使用数据库已经存在表的时候 可以用这个字段指定哪个表
+        # 定义在管理后台显示的名称
+        #verbose_name = '颜色'
+        # 定义复数时的名称（去除复数的s）
+        #verbose_name_plural = verbose_name
         # ordering = ('id',) #按照某些字段排序
         # permissions = (('定义好的权限', '权限说明'),)
         # 给数据库的表设置额外的权限
