@@ -138,6 +138,10 @@ DATETIME_FORMAT = 'Y-m-d H:i:s'
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR.parent / 'static'
+# STATICFILES_DIRS 和STATIC_ROOT 不能同时存在 都是static静态文件查询路径
+#STATICFILES_DIRS  = [
+#    BASE_DIR / "frontend/dist/static" 比如django控制vue启动 需要这里设置vue静态文件存放文件
+#]
 # 运行 python3 manage.py collectstatic 就会把django的静态资源打包到STATIC_ROOT 文件里面 后续需要nginx加载静态文件
 # nginx 配置django静态资源
 """
