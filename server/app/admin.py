@@ -41,9 +41,6 @@ class ClothModelAdmin(ModelAdmin):
     # 6. 查询列
     search_fields = ['color', 'total']
     
-    # 当存在多对多的外键的时候 设置这个 更加方便选择 可以填写多个外键字段
-    filter_horizontal = ('外键字段',)
-
     # 7. 是否在页面顶端显示保存按钮
     # save_on_top = True
 
@@ -69,8 +66,12 @@ class ClothModelAdmin(ModelAdmin):
 
     # 是否显示选择个数
     actions_selection_counter = True
-
-    # raw_id_fields = ['ut',]
+    
+    # clothes表外键关联到color表 在外键选择上面可以优化界面
+    autocomplete_fields = ['color'] # use select2 to  select user 就是可搜索的下拉框
+    # 弹框选择外键表
+    # raw_id_fields = ['color',] # use a pop-out search window for a foreign key
+    
     # fields = ['name']
     # exclude = ['name',]
 
@@ -93,8 +94,6 @@ class ClothModelAdmin(ModelAdmin):
     fk_fields = ('color',)
 
     date_hierarchy = 'created_time'  # 详细时间分层筛选　
-
-    # raw_id_fields = ('FK字段', 'M2M字段',)
 
     """
     9. preserve_filters，详细页面，删除、修改，更新后跳转回列表后，是否保留原搜索条件
@@ -135,7 +134,15 @@ class ClothesInline(admin.TabularInline):
 @admin.register(models.Colors)
 class ColorsModelAdmin(ModelAdmin):
     search_fields = ['colors']
-    inlines = [ClothesInline]  # 内联 因为Clothes外键到Colors
+    inlines = [ClothesInline]  # 内联 因为Clothes外键到Colors 可以在被关联的表中设置内联 这样可以在color表操作界面 操作clothes表
+    
+
+@admin.register(models.Child)
+class ChildModelAdmin(ModelAdmin):
+    # 这个模型使用多对多外键关联了Color模型 当后台操作选择多对多的时候 可以用这个命令filter_horizontal = ('外键字段',)
+     # 当存在多对多的外键的时候 设置这个 更加方便选择 可以填写多个外键字段 
+    filter_horizontal = ('favor',) # 横向选择
+    #filter_vertical = ('favor',) # 纵向选择
 
 
 
