@@ -104,13 +104,14 @@ class TimeStampFileName:
 """
 
 #文件操作
+"""
 class MyFile(models.Model):
 
     image_url = models.ImageField(upload_to='media/images/%Y/%m/%d', null=False, blank=False, verbose_name='图片url')
     file_url = models.FileField(upload_to=TimeStampFileName('media/'), null=False, blank=False, verbose_name='文件url')
     #实际的路径就是 MEDIA_ROOT/{upload_to}/filename
     #所以可以用uoload_to来指定文件存放的前缀路径
-
+"""
 # 枚举
 class EnumModel(models.Model):
     class Paid(models.IntegerChoices):
@@ -128,7 +129,6 @@ assert obj.pay_by == obj.Paid.wx == 0
 # 枚举参数检验 如果不检验直接存 那么也会存进去就会造成脏数据   应该判断 例如 if 3 in EnumModel.Paid: EnumModel.objects.create(pay_by=3)
 或者存入枚举类  EnumModel.objects.create(EnumModel.Paid.ali)
 """
-
 
 
 # 信号
