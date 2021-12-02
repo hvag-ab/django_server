@@ -137,7 +137,7 @@ DATETIME_FORMAT = 'Y-m-d H:i:s'
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = str((BASE_DIR.parent) / 'static')
+STATIC_ROOT = BASE_DIR.parent / 'static'
 # 运行 python3 manage.py collectstatic 就会把django的静态资源打包到STATIC_ROOT 文件里面 后续需要nginx加载静态文件
 # nginx 配置django静态资源
 """
@@ -153,7 +153,7 @@ location /static {
 403 权限错误 chmod 755 /path/to/static #为了保证文件能正确执行，nginx既需要文件的读权限,又需要文件所有父目录的可执行权限。
 """
 
-MEDIA_ROOT = str((BASE_DIR.parent) / 'media')
+MEDIA_ROOT = BASE_DIR.parent / 'media'
 # os.path.join(BASE_DIR, "media")  # 上传图片保存位置
 MEDIA_URL = "/media/"  # 浏览器显示图片等 的url 例如 http://localhost:8000/media/.....
 
