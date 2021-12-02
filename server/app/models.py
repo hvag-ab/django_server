@@ -181,7 +181,8 @@ print(cloth[0].description)
 4.color_obj=models.Colors.objects.get(colors="红") print(color_obj.clothes_set.all())  如果设置了related_name='hvag' print(color_obj.hvag.all())
 
 # 反向
-cloths = Clothes.objects.filter(color=Colors.objects.get(colors="红")))
+1.cloths = Clothes.objects.filter(color=Colors.objects.get(colors="红")))
+2.cloths = Colors.objects.get(colors="红").clothes_color.all() # clothes_color 为 related_name 否则用 模型名称小写_set
 
 add
 Clothes.objects.create(color=models.Colors.objects.get(colors="green"),description="xxxy")
