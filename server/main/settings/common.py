@@ -25,11 +25,9 @@ BASE_DIR = PROJECT_PACKAGE.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 config = BASE_DIR / 'config' / 'secrets.json'
 
-try:
-    with open(config) as handle:
-        SECRETS = json.load(handle)
-except IOError:
-    raise IOError('config file parse error or io error')
+# 读取json配置文件
+with open(config) as handle:
+    SECRETS = json.load(handle)
 
 SECRET_KEY = str(SECRETS['secret_key'])
 
@@ -158,7 +156,7 @@ location /static {
 """
 
 MEDIA_ROOT = BASE_DIR.parent / 'media'
-# os.path.join(BASE_DIR, "media")  # 上传图片保存位置
+# 上传图片保存位置
 MEDIA_URL = "/media/"  # 浏览器显示图片等 的url 例如 http://localhost:8000/media/.....
 
 # AUTH_USER_MODEL = 'account.UserProfile'  # 因为models使用AbstractUser
@@ -203,7 +201,7 @@ CORS_ALLOW_HEADERS = (
     'Pragma',
 )
 
-CSRF_COOKIE_NAME = "XSRF-TOKEN"  # 一定要添加这个 接受前端请求的csrf
+CSRF_COOKIE_NAME = "XSRF-TOKEN"  # 一定要添加这个 接受前端请求的csrf 否则403 状态
 # CSRF_COOKIE_SECURE = True
 
 
