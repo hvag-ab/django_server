@@ -2,6 +2,7 @@ from django.db import models
 # from django.db.models import CheckConstraint, UniqueConstraint
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+# 模型字段里面不能有save字段名 否则会覆盖save方法  一次类推其他方法名
 
 
 class BaseModel(models.Model):
