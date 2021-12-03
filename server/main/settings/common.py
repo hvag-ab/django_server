@@ -201,7 +201,7 @@ CORS_ALLOW_HEADERS = (
     'Pragma',
 )
 
-CSRF_COOKIE_NAME = "csrftoken"  # 一定要添加这个 接受前端请求的csrf 否则403 状态 csrf检测拦截
+CSRF_COOKIE_NAME = "XSRF-TOKEN"  # 一定要添加这个 接受前端请求的csrf 否则403 状态 csrf检测拦截
 # CSRF_COOKIE_SECURE = True
 
 
