@@ -22,10 +22,10 @@ class ClothModelAdmin(ModelAdmin):
     # 使用自定义的form表单验证功能
     # form = UserModelForm
     # 1.定义列表页面，显示列数据
-    list_display = ['color', 'total', 'description','hvag']
+    list_display = ['total', 'description','hvag']
     #自定义显示字段 自定义显示字段名 不能 和 模型中的字段名一样
     def hvag(self, obj):
-        return obj.description
+        return obj.color.colors
 
     hvag.empty_value_display = "默认为空时显示的值"
 
@@ -42,7 +42,7 @@ class ClothModelAdmin(ModelAdmin):
     list_editable = ['color']
 
     # 6. 查询列
-    search_fields = ['color', 'total']
+    search_fields = ['total','color__colors']
     
     # 7. 是否在页面顶端显示保存按钮
     # save_on_top = True
