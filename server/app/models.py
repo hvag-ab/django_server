@@ -41,6 +41,11 @@ class Colors(BaseModel):
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):  # 模型保存or更新时 执行其他逻辑 仅试用单条记录创建or更新
+        # 动态改变字段值 例如保存字段变成大写
+        """
+        if self.colors:
+            self.colors = self.colors.upper()
+        """
         
         # if not self.pk: 添加   if self.pk 表示更新
         #     do something
