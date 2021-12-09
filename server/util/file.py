@@ -6,6 +6,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.styles import Side, Border, colors, PatternFill, Alignment, Font
 from django.http import HttpResponse, StreamingHttpResponse
 from typing import List, Union, Optional, Callable, Any, IO
+from io import StringIO
 
 Buffer = Union[bytes, IO]
 DATA = Union[List[dict], List[Any]]
@@ -263,10 +264,15 @@ class DataToCSV:
 
     @property
     def export(self):
-        pseudo_buffer = Echo()
-        writer = csv.writer(pseudo_buffer)
-        data = self.gen_data(writer)
-        return file_response(data,filename=self.filename,ext='csv')
+        if hasattr(self.data,'to_csv'):
+            result = StringIO()
+            self.data.to_csv(result,index=False,encoding="utf_8_sig")
+            result = result.getvalue().encode("utf_8_sig")
+        else:
+            pseudo_buffer = Echo()
+            writer = csv.writer(pseudo_buffer)
+            result = self.gen_data(writer)
+        return file_response(result,filename=self.filename,ext='csv')
 
 
 from django.conf import settings
