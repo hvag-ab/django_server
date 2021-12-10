@@ -174,7 +174,8 @@ SET_NULL使用的时候需要blank=True, null=True；假设A表依赖B表，B记
 如果使用两个表之间存在关联,首先db_constraint=False 把关联切断,但保留链表查询的功能,其次要设置null=True, blank=True,注意on_delete=models.SET_NULL 一定要置空,这样删了不会影响其他关联的表
 
 """
-
+# select_related 用于一对一 一对多正向
+# prefetch_related 用于多对多  一对多反向
 """
 一对多查询
 # 正向
@@ -183,11 +184,11 @@ print(cloth.color.colors)
 2.cloth = Clothes.objects.select_related('color').filter(color__colors="red")
 print(cloth[0].description)
 3.Clothes.objects.filter(color__colors="red").values('color__colors','description'))
-4.color_obj=models.Colors.objects.get(colors="红") print(color_obj.clothes_set.all())  如果设置了related_name='hvag' print(color_obj.hvag.all())
-
 # 反向
-1.cloths = Clothes.objects.filter(color=Colors.objects.get(colors="红")))
-2.cloths = Colors.objects.get(colors="红").clothes_color.all() # clothes_color 为 related_name 否则用 模型名称小写_set
+3.cloths = Colors.objects.get(colors="红").clothes_color.all() # clothes_color 为 related_name 否则用 模型名称小写_set
+1.color_obj=models.Colors.objects.get(colors="红") print(color_obj.clothes_set.all())  如果设置了related_name='hvag' print(color_obj.hvag.all())
+2.color_obj=models.Colors.objects.filter(colors="红").prefetch_related('clothes') (prefetch_related用于一对多反向，括号里面是反向模型名小写)    print(color_obj.clothes_set.all())
+# 实现原理 先查询models.Colors.objects.filter(colors="红") 然后再查询 clothes 和 colors 的inner join 然后再合并查询集queryset 缓存起来
 
 add
 Clothes.objects.create(color=models.Colors.objects.get(colors="green"),description="xxxy")
