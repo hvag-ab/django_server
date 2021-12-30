@@ -89,8 +89,36 @@ class Clothes(BaseModel):
 class Child(models.Model):
     name = models.CharField(max_length=10)  # 姓名
     favor = models.ManyToManyField('Colors', related_name='child_favor')  # 与颜色表为多对多
+
+# 如果一个字表关联多张表 一个个外键建立过于繁琐 直接关联ContentType 就相当于同时建立多个外键 
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+class Statistics(models.Model):
+       # 关联，外键
+    content_type = models.ForeignKey(ContentType, on_delete=models.DO_NOTHING)
+    # 对应模型的主键值，数值类型
+    object_id = models.PositiveIntegerField(verbose_name="关联表中的数据行ID")
+    # 把content_type和object_id两个字段合并成一个通用的外键
+    content_object = GenericForeignKey('content_type', 'object_id')
+    
+""" 
+>>> from django.contrib.contenttypes.models import ContentType
+>>> user_type = ContentType.objects.get(app_label='auth', model='user') # 获取到一条记录
+>>> user_type # 注意，这是contenttype的实例对象，不是User表的
+<ContentType: user>
+>>> user_type.model_class()  # 获取User类 可以使用.objects.fileter ....
+<class 'django.contrib.auth.models.User'>
+>>> user_type.get_object_for_this_type(username='Guido') # 获取某个User表的实例
+<User: Guido>
+# 增
+obj = Colors.objects.get(id=2)
+Statistics.objects.create(content_object=obj)
+# 查
+Statistics.objects.filter(content_object=obj)
+"""    
     
     
+#    
 """
 from pathlib import Path
 from secrets import token_hex
