@@ -116,7 +116,7 @@ Statistics.objects.create(content_object=obj)
 # 查
 Statistics.objects.filter(content_object=obj)
 # 获取id=1的外键实例
-s_obj = models.Coupon.objects.filter(id=1).first()
+s_obj = Statistics.objects.filter(id=1).first()
 prod = s_obj.content_object
 print(prod)
 #反向查询 使用反向查询 必须 在关联的主表上面建立 例如Colors表  建立一个虚拟外键 statistics = GenericRelation(to="Statistics")
