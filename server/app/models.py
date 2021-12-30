@@ -90,7 +90,7 @@ class Child(models.Model):
     name = models.CharField(max_length=10)  # 姓名
     favor = models.ManyToManyField('Colors', related_name='child_favor')  # 与颜色表为多对多
 
-# 如果一个字表关联多张表 一个个外键建立过于繁琐 直接关联ContentType 就相当于同时建立多个外键 
+# 如果一个表关联多张表 一个个外键建立过于繁琐 直接关联ContentType 就相当于同时建立多个外键 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 class Statistics(models.Model):
@@ -115,6 +115,10 @@ obj = Colors.objects.get(id=2)
 Statistics.objects.create(content_object=obj)
 # 查
 Statistics.objects.filter(content_object=obj)
+# 获取id=1的外键实例
+s_obj = models.Coupon.objects.filter(id=1).first()
+prod = s_obj.content_object
+print(prod)
 #反向查询 使用反向查询 必须 在关联的主表上面建立 例如Colors表  建立一个虚拟外键 statistics = GenericRelation(to="Statistics")
 obj.statistics.all()
 """    
