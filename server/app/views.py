@@ -50,7 +50,8 @@ class API(APIView):
         data = request.data
         serializer = LoginSerializer(data=data, context={'request': request})
         if serializer.is_valid():
-            serializer.save()
+            instance = serializer.save()
+            # 返回的是对象实例 可以用于后续操作
             return JsResponse(data=serializer.data, status=status.HTTP_201_CREATED, code=True)
         else:
             print(serializer.error_messages)
