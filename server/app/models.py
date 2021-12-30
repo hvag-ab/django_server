@@ -115,6 +115,8 @@ obj = Colors.objects.get(id=2)
 Statistics.objects.create(content_object=obj)
 # 查
 Statistics.objects.filter(content_object=obj)
+#反向查询 使用反向查询 必须 在关联的主表上面建立 例如Colors表  建立一个虚拟外键 statistics = GenericRelation(to="Statistics")
+obj.statistics.all()
 """    
     
     
