@@ -1,6 +1,6 @@
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase,APITransactionTestCase#设计回滚测试的时候用这个类
 from django.contrib.auth.models import User
 from django.core.files import File 
 from django.core.files.uploadedfile import SimpleUploadedFile 
