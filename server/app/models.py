@@ -110,6 +110,9 @@ class Statistics(models.Model):
 <class 'django.contrib.auth.models.User'>
 >>> user_type.get_object_for_this_type(username='Guido') # 获取某个User表的实例
 <User: Guido>
+>>> from django.contrib.auth.models import User
+>>> ContentType.objects.get_for_model(User) # 提供model的名字，查询出对应的contenttype实例。
+<ContentType: user>
 # 增
 obj = Colors.objects.get(id=2)
 Statistics.objects.create(content_object=obj)
