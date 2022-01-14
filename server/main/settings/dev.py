@@ -26,6 +26,25 @@ DATABASES = {
         'NAME': str(BASE_DIR/'app.db'),
     },
 }
+ 
+""" oracle链接特殊点
+# service_name 连接
+    'oracle': {
+　　　　　　'ENGINE': 'django.db.backends.oracle',
+　　　　　　'NAME': 'IP:端口号/service_name',
+　　　　　　'USER': '用户名',
+　　　　　　'PASSWORD': '密码',
+    }
+# sid连接
+　　　　'oracle': {
+　　　　　　'ENGINE': 'django.db.backends.oracle',
+　　　　　　'NAME': '数据库SID',
+　　　　　　'USER': '用户名',
+　　　　　　'PASSWORD': '密码',
+　　　　　　'HOST':'IP',
+　　　　　　'PORT':'端口号'
+　　　　}
+"""
 
 # Django REST Framework
 REST_FRAMEWORK = {
