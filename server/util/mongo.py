@@ -8,16 +8,17 @@ mongo_uri = settings.MONGO
 
 class MongoConnection:
 
-    def __init__(self, dbname, collection, maxPoolSize=20, minPoolSize=5, maxIdleTimeMS=1000, connectTimeoutMS=1000):
-        client = MongoClient(mongo_uri, maxPoolSize=maxPoolSize, minPoolSize=minPoolSize,
+    def __init__(self, dbname, collection=None, maxPoolSize=20, minPoolSize=5, maxIdleTimeMS=1000, connectTimeoutMS=1000):
+        self.client = MongoClient(mongo_uri, maxPoolSize=maxPoolSize, minPoolSize=minPoolSize,
                              maxIdleTimeMS=maxIdleTimeMS, connectTimeoutMS=connectTimeoutMS, connect=False)
-        self.db = client[dbname]  # 没有就创建
-        self.collection = self.db[collection]  # 没有就创建
+        self.db = self.client[dbname]  # 没有就创建
+        if collection:
+            self.collection = self.db[collection]  # 没有就创建
 
     def filter(self, id: Optional[str] = None, data: Optional[dict] = None,
                condition: Optional[Dict[str, Dict[str, Any]]] = None,
                many: bool = True
-               ) -> Union[dict, None, cursor.Cursor]:
+               ) -> Union[dict, cursor.Cursor]:
         """
         :param id: 查询mongo的 _id ObjectId对的id获取办法是 ObjectId.binary.hex()
         :param data:查询的条件 精确查询
@@ -30,11 +31,15 @@ class MongoConnection:
 
         find = getattr(self.collection, 'find' if many else 'find_one')
         if data:
-            return find(data)
-        if condition:
-            return find(condition)
+            result = find(data)
+        elif condition:
+            result = find(condition)
         else:
-            return find()
+            result = find()
+        if result is None:
+            return {}
+        else:
+            return result
 
     def create(self, data: Union[dict, list]) -> Union[ObjectId, List[ObjectId]]:
         if isinstance(data, dict):
@@ -46,8 +51,8 @@ class MongoConnection:
         else:
             raise TypeError(f'data must be list or dict got ={type(data)}')
 
-    def update(self, condition: Union[dict,Dict[str, Dict[str, Any]]],
-               data: dict) -> int:
+    def update(self, condition: Union[dict, Dict[str, Dict[str, Any]]],
+               data: dict = None) -> int:
         """
         :param data: 更新值（替换key-value） 如果key不在查询值里面 就把这个key value新增上去
         :param condition: 查询条件
@@ -56,17 +61,17 @@ class MongoConnection:
         result = self.collection.update_many(condition, {'$set': data})
         return result.modified_count
 
-    def update_or_create(self, condition:Union[dict,Dict[str, Dict[str, Any]]],
+    def update_or_create(self, condition: Union[dict, Dict[str, Dict[str, Any]]],
                          data: dict = None) -> int:
         result = self.collection.update_one(condition, {'$set': data}, upsert=True)
         return result.modified_count
 
-    def delete(self, condition:Union[dict,Dict[str, Dict[str, Any]]]) -> int:
+    def delete(self, condition: Union[dict, Dict[str, Dict[str, Any]]]) -> int:
         result = self.collection.delete_many(condition)
         return result.deleted_count
 
-    def find_or_create(self, condition:Union[dict,Dict[str, Dict[str, Any]]],
-                       data:dict) -> Tuple[bool, dict]:
+    def find_or_create(self, condition: Union[dict, Dict[str, Dict[str, Any]]],
+                       data: dict) -> Tuple[bool, dict]:
         result = self.collection.find(condition)
         if not result:
             self.create(data)
@@ -74,3 +79,17 @@ class MongoConnection:
         else:
             return True, result
 
+    def collect(self,collection):
+        self.collection = self.db[collection]  # 没有就创建
+
+    def close(self):
+        self.client.close()
+
+    def remove(self):
+        self.collection.remove()
+
+    def __del__(self):
+        try:
+            self.close()
+        except:
+            pass
