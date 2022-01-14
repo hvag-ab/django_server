@@ -27,24 +27,6 @@ DATABASES = {
     },
 }
  
-""" oracle链接特殊点
-# service_name 连接
-    'oracle': {
-　　　　　　'ENGINE': 'django.db.backends.oracle',
-　　　　　　'NAME': 'IP:端口号/service_name',
-　　　　　　'USER': '用户名',
-　　　　　　'PASSWORD': '密码',
-    }
-# sid连接
-　　　　'oracle': {
-　　　　　　'ENGINE': 'django.db.backends.oracle',
-　　　　　　'NAME': '数据库SID',
-　　　　　　'USER': '用户名',
-　　　　　　'PASSWORD': '密码',
-　　　　　　'HOST':'IP',
-　　　　　　'PORT':'端口号'
-　　　　}
-"""
 
 # Django REST Framework
 REST_FRAMEWORK = {
@@ -134,6 +116,48 @@ else:
     ]
 
     DEBUG_TOOLBAR_PATCH_SETTINGS = False
+    
+"""
+DATABASES = {
+    'sqlite':{
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': str(BASE_DIR/'app.db'),
+    },
+    'mysql': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': SECRETS[env]['db']['name'],
+        'HOST': SECRETS[env]['db']['host'],
+        'PORT': SECRETS[env]['db']['port'],
+        'USER': SECRETS[env]['db']['user'],
+        'PASSWORD': SECRETS[env]['db']['password']
+        # 'CONN_MAX_AGE': 0
+        # CONN_MAX_AGE的时间怎么设置主要取决于数据库对空闲连接的管理，比如你的MySQL设置了空闲1分钟就关闭连接 默认为0，不使用 一般用于数据库不在本地,远程连接数据库时间过长
+    },
+    'postgres': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': SECRETS['docker']['db']['name'],
+        'HOST': SECRETS['docker']['db']['host'],
+        'PORT': SECRETS['docker']['db']['port'],
+        'USER': SECRETS['docker']['db']['user'],
+        'PASSWORD': SECRETS['docker']['db']['password']
+    },
+    'oracle': { # service_name 连接
+        'ENGINE': 'django.db.backends.oracle',
+        'NAME': 'IP:端口号/service_name',
+        'USER': '用户名',
+        'PASSWORD': '密码',
+    }
+    'oracle2': { # sid连接
+        'ENGINE': 'django.db.backends.oracle',
+        'NAME': '数据库SID',
+        'USER': '用户名',
+        'PASSWORD': '密码',
+        'HOST':'IP',
+        'PORT':'端口号'
+    }
+}
+
+"""
 
 
 
