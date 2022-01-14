@@ -12,7 +12,7 @@ def execute_sql(sql: str, *, args: Optional[list] = None, many: bool = True,
     :param many: 获取 一条记录 还是 多条记录
     :param dbname: 使用哪一个数据库 默认是default 有可能会配置多个数据库
     :param keep: dict or list dict类型结果  list表示返回的是tuple（字段名，字段值） 数据量大 dict性能低
-    :param args: sql传递的参数 例如 "SELECT foo FROM bar WHERE baz = %s", [baz] 注意sql中多个%s顺序跟args数组顺序一致
+    :param args: sql传递的参数 例如 "SELECT foo FROM bar WHERE baz = %s", [baz] 注意sql中多个%s顺序跟args数组顺序一致 #还要特别注意如果sql中有百分号 需要写两个例如 like baz = 'hvag%%'
     :return: list[dict] or dict or tuple[list,list[tuple]] or tuple[list,tuple]
     """
     if keep not in ['dict', 'tuple']:
