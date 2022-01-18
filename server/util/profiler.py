@@ -1,24 +1,31 @@
 from functools import wraps
+from io import StringIO
 
-try:
-    from line_profiler import LineProfiler
-    from io import StringIO
-except ImportError:
-    pass
+from line_profiler import LineProfiler
+from django.conf import settings
 
 
-def profiler(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        lp = LineProfiler()
-        lp_wrapper = lp(func)
-        result = lp_wrapper(*args, **kwargs)
-        fio = StringIO()
-        lp.print_stats(stream=fio, stripzeros=True)
-        print(fio.getvalue())
-        return result
+class profiler:
 
-    return wrapper
+    def __init__(self, debug=True):
+        self.debug = debug
+
+    def __call__(self, func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            lp = LineProfiler()
+            lp_wrapper = lp(func)
+            result = lp_wrapper(*args, **kwargs)
+            fio = StringIO()
+            lp.print_stats(stream=fio, stripzeros=True)
+            if self.debug:
+                print(fio.getvalue())
+            else:
+                file_path = settings.BASE_LOG_DIR / 'profile.log'
+                with open(file_path, 'a') as f:
+                    f.write(fio.getvalue())
+            return result
+        return wrapper
     
 """
 使用：
