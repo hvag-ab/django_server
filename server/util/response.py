@@ -1,5 +1,4 @@
 from rest_framework.response import Response
-from rest_framework.serializers import Serializer
 
 
 class JsResponse(Response):
@@ -12,30 +11,11 @@ class JsResponse(Response):
                  status=None,
                  template_name=None, headers=None,
                  exception=False, content_type=None):
-        """
-        Alters the init arguments slightly.
-        For example, drop 'template_name', and instead use 'data'.
-        Setting 'renderer' and 'media_type' will typically be deferred,
-        For example being set automatically by the `APIView`.
-        """
-        super().__init__(None, status=status)
 
-        if isinstance(data, Serializer):
-            msg = (
-                'You passed a Serializer instance as data, but '
-                'probably meant to pass serialized `.data` or '
-                '`.error`. representation.'
-            )
-            raise AssertionError(msg)
-
-        self.data = {"code": code, "data": data, "message": msg}#就是自定义的response返回值
-        self.template_name = template_name
-        self.exception = exception
-        self.content_type = content_type
-
-        if headers:
-            for name, value in headers.items():
-                self[name] = value
+        data = {"success": code, "data": data, "message": msg}
+        super().__init__(data=data, status=status,
+                 template_name=template_name, headers=headers,
+                 exception=exception, content_type=content_type)
 
 
 
