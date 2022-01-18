@@ -6,7 +6,7 @@ workers = 9   #进程数 推荐 2*cpu核数 + 1
 threads = 8 #指定每个进程开启的线程数 推荐2 - 4*cpu核数 只适用于gthread 方式
 reload = True#代码更新时将重启工作，默认为False。此设置用于开发，每当应用程序发生更改时，都会导致工作重新启动。
 preload = False # 预加热 默认使用的是lazy-app加载方式（启动gunicorn后第一次请求耗时长） 
-#就是只有在第一个请求到达时，Worker才会对WSGI App进行初始化。因为Django框架很复杂，耗时也会相对多一些，但这个做法会导致某些代码因跨进程出现问题（如python-kafka），所以更通用的方法还是写py脚本进行预热。
+#就是只有在第一个请求到达时，Worker才会对WSGI App进行初始化。因为Django框架很复杂，耗时也会相对多一些，但预加载这个做法会导致某些代码因跨进程出现问题（如python-kafka），所以更通用的方法还是写py脚本进行预热。
 debug = False
 daemon= False #守护进程 #如果不使用supervisord之类的进程管理工具可以是进程成为守护进程，否则会出问题
 
