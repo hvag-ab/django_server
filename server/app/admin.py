@@ -70,7 +70,7 @@ class ClothModelAdmin(ModelAdmin):
     # 是否显示选择个数
     actions_selection_counter = True
     
-    # clothes表外键关联到color表 在外键选择上面可以优化界面
+    # clothes表外键关联到color表 在外键选择上面可以优化界面 # 设置这个功能 必须依赖于对应的外键表 例如color表 要设置admin要添加 search_fields = ['colors']
     autocomplete_fields = ['color'] # use select2 to  select user 就是可搜索的下拉框
     # 弹框选择外键表
     # raw_id_fields = ['color',] # use a pop-out search window for a foreign key
