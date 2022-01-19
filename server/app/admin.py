@@ -41,7 +41,7 @@ class ClothModelAdmin(ModelAdmin):
     # 5. 列是否可编辑
     list_editable = ['color']
 
-    # 6. 查询列
+    # 6. 查询列 # 这里包含查询的字段包括外键（一对多 多对多）
     search_fields = ['total','color__colors']
     
     # 7. 是否在页面顶端显示保存按钮
