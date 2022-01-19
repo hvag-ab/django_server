@@ -128,6 +128,11 @@ class ClothModelAdmin(ModelAdmin):
     def has_change_permission(self, request, obj=None):
         # 禁用编辑
         return False
+    
+    # 定义查询集
+    def get_queryset(self, request):
+        return super().get_queryset(request).all().order_by("-id")
+
 
 
 class ClothesInline(admin.TabularInline):
