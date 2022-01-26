@@ -2,7 +2,7 @@ from django.db import transaction
 from rest_framework.views import APIView
 from util.response import JsResponse
 
-# 类视图 (事务,保存点的使用)
+# 类视图 (事务的使用 对数据库多个操作行为必须一致的时候需要事务)
 class MyView2(APIView):
     @transaction.atomic
     def post(self, request, *args, **kwargs):
