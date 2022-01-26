@@ -33,16 +33,18 @@ def funcview(request):
         
         # 设置一个事务保存点
     	sl1 = transaction.savepoint()  # 可以设置多个保存点
+	
+	try:
  
 		数据库操作01
    	 	数据库操作02
    	 	...
-    
-    	# 事务回滚, 如果发生异常,可以回滚到制定的保存点
-    	transaction.savepoint_rollback(sl1)
-    
-    	# 提交事务,如果按照预定的执行,没有异常就提交事务
-    	# (这一步好像是自动提交的,应该没必要)
-    	transaction.savepoint_commit(sl1)
+    	except:
+		# 事务回滚, 如果发生异常,可以回滚到制定的保存点
+		transaction.savepoint_rollback(sl1)
+    	else:
+		# 提交事务,如果按照预定的执行,没有异常就提交事务
+		# (这一步好像是自动提交的,应该没必要)
+		transaction.savepoint_commit(sl1)
     
     	return HttpResponse('ok')
