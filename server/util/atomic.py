@@ -1,4 +1,4 @@
-from django.db import transaction
+from django.db import transaction,IntegrityError
 from rest_framework.views import APIView
 from util.response import JsResponse
 
@@ -13,7 +13,7 @@ class MyView2(APIView):
 		# 需要回滚的操作 一般是对数据库的多个增删改行为
 	        # save
 		# update 
-	except IntegrityError:
+	except IntegrityError as e:
 	    handle_exception()
 
 	# do something else ...
