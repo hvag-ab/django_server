@@ -7,23 +7,16 @@ class MyView2(APIView):
     @transaction.atomic
     def post(self, request, *args, **kwargs):
 
-        # 设置事务保存点
-        s1 = transaction.savepoint()   # 可以设置多个保存点
-        try:
+        # do something ...
+	try:
+	    with transaction.atomic():
+		# 需要回滚的操作 一般是对数据库的多个增删改行为
+	        # save
+		# update 
+	except IntegrityError:
+	    handle_exception()
 
-            # 数据库操作。。。
-            
-        except:
-
-            # 事务回滚 (如果发生异常,就回滚事务)
-            transaction.savepoint_rollback(s1)  # 可以回滚到指定的保存点
-        
-        else:
-            # 提交事务 (如果没有异常,就提交事务)
-            transaction.savepoint_commit(s1)
-
-        # 返回应答
-        return JsResponse('ok')
+	# do something else ...
 
 #上下文with方式
 def funcview(request):
@@ -40,7 +33,7 @@ def funcview(request):
    	 	数据库操作02
    	 	...
     	except:
-		# 事务回滚, 如果发生异常,可以回滚到制定的保存点
+		# 事务回滚, 如果发生异常,可以回滚到制定的保存点 （容易引发TransactionManagementError 问题就是如果并没有保存 反而提交了回滚行为）
 		transaction.savepoint_rollback(sl1)
     	else:
 		# 提交事务,如果按照预定的执行,没有异常就提交事务
