@@ -9,7 +9,7 @@ class MyView2(APIView):
 
         # do something ...
 	try:
-	    with transaction.atomic():
+	    with transaction.atomic(): # 如果with中发生错误 __exit__ 一定会执行回滚
 		# 需要回滚的操作 一般是对数据库的多个增删改行为
 	        # save
 		# update 
