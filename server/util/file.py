@@ -1,15 +1,15 @@
-import csv,tempfile, zipfile
+import csv,tempfile, zipfile,codecs
 
 import openpyxl
 from openpyxl.writer.excel import ExcelWriter
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Side, Border, colors, PatternFill, Alignment, Font
 from django.http import HttpResponse, StreamingHttpResponse
-from typing import List, Union, Optional, Callable, Any, IO
+from typing import List, Union, Optional, Callable, Any, IO, Sequence
 from io import StringIO
 
-Buffer = Union[bytes, IO]
-DATA = Union[List[dict], List[Any]]
+DATA = Sequence[Union[dict,Sequence]]
+Buffer = Union[bytes, IO, DATA]
 
 
 def file_response(buffer: Buffer,
@@ -78,6 +78,7 @@ class ExcelToData:
         """
         :param file: 上传的excel二进制数据
         :param header: # excel表头映射成模型的字段名
+        :param serializer: # 序列化器 验证excel中的数据
         :param first_row: # 从哪一行开始获取数据
         :param sheet_no: # 获取excel中哪一个sheet
         :param func: # 处理每行数据的额外函数 比如添加额外数据 或者 数据验证 或者 保存数据
@@ -112,9 +113,9 @@ class ExcelToData:
 class DataToExcel:
 
     def __init__(self, data: DATA = None, headers: Union[dict, list] = None, name: str = 'Sheet1',
-                 is_header: bool = False,
-                 ext: str = 'xlsx', title: str = None, merge: list = None, beauty: bool = True,
-                 cell_width=15, need_header=True, skip_rows=0, func: Callable[[dict], Any] = None):
+                 is_header: bool = False,ext: str = 'xlsx', title: str = None, merge: list = None,
+                 beauty: bool = True,cell_width=15, need_header=True, skip_rows=0,
+                 func: Callable[[dict], Any] = None, header_map:Optional[dict] = None):
         """
         :param headers: excel表格头 {'定义的名称'：’字段名',....}
         :param data: 表格数据 [{'字段名':'字段的值’}]
@@ -138,12 +139,12 @@ class DataToExcel:
                         self.headers = headers
             else:
                 if not headers:
-                    raise ValueError('data是List[list], header 不能为空')
+                    raise ValueError('data是Sequence[Sequence], header 不能为空')
                 else:
-                    if not isinstance(headers, list):
-                        raise ValueError('data是List[list], header 必须 为 列表')
+                    if not isinstance(headers, Sequence):
+                        raise ValueError('data是Sequence[Sequence], header 必须 为 Sequence')
                     if len(headers) != len(first_data):
-                        raise ValueError('data是List[list], header 长度不匹配')
+                        raise ValueError('data是Sequence[Sequence], header 长度不匹配')
                     self.headers = headers
         else:
             if not headers:
@@ -165,6 +166,7 @@ class DataToExcel:
         self.need_header = need_header
         self.skip_rows = skip_rows
         self.func = func
+        self.header_map = header_map
 
     @property
     def export(self):
@@ -188,7 +190,11 @@ class DataToExcel:
             headline = 1
 
         if self.need_header:
-            ws.append(self.excel_field_names)
+            if self.header_map:
+                excel_field_names = list(map(lambda x:self.header_map.get(x,x), self.excel_field_names))
+                ws.append(excel_field_names)
+            else:
+                ws.append(self.excel_field_names)
 
         orange_fill = PatternFill(fill_type='solid', fgColor="A6D5B0")
         for ci in range(len(self.excel_field_names)):
@@ -199,14 +205,14 @@ class DataToExcel:
 
         if not self.is_header:
             for ind, obj in enumerate(self.data):
-                if isinstance(obj, list):
+                if isinstance(obj, Sequence):
                     data = obj
                 elif isinstance(obj, dict):
                     if self.func:
                         obj = self.func(obj)
                     data = [obj.get(v, v) for v in self.headers.values()]
                 else:
-                    raise ValueError('data 必须是 List[list or dict]')
+                    raise ValueError('data 必须是 data是Sequence[Sequence]')
                 if ind >= self.skip_rows:
                     ws.append(data)
 
@@ -248,13 +254,13 @@ class Echo:
 
 class DataToCSV:
 
-    def __init__(self, data: List[Union[list, dict]], filename: str = 'somefile'):
+    def __init__(self, data: Union[DATA, "DataFrame"], filename: str = 'somefile'):
         self.data = data
         self.filename = filename
 
     def gen_data(self, writer):
         for index, data in enumerate(self.data):
-            if isinstance(data, list):
+            if isinstance(data, Sequence):
                 yield writer.writerow(data)
 
             elif isinstance(data, dict):
