@@ -5,9 +5,11 @@ from typing import Optional, Callable, Any, Union, List, Tuple, Dict
 def execute_sql(sql: str, *, args: Optional[list] = None, many: bool = True,
                 dbname: str = 'default', keep: str = "dict", action='r',
                 func: Callable[[dict], Any] = lambda d: d
-                ) -> Union[None,
+                ) -> Union[
+                           None,
                            List[Any], Tuple[List[str], List[tuple]],
-                           Dict[str, Any], Tuple[List[str], tuple]]:
+                           Dict[str, Any], Tuple[List[str], tuple]
+                          ]:
     """
     :param func: 针对每条dict需要做进一步操作 减少多次循环
     :param sql: sql 语句
