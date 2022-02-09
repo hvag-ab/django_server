@@ -5,11 +5,11 @@ from openpyxl.writer.excel import ExcelWriter
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Side, Border, colors, PatternFill, Alignment, Font
 from django.http import HttpResponse, StreamingHttpResponse
-from typing import List, Union, Optional, Callable, Any, IO, Sequence
+from typing import List, Union, Optional, Callable, Any, IO, Sequence,Generator
 from io import StringIO
 
 DATA = Sequence[Union[dict,Sequence]]
-Buffer = Union[bytes, IO, DATA]
+Buffer = Union[bytes, IO, Generator]
 
 
 def file_response(buffer: Buffer,
