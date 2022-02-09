@@ -1,15 +1,14 @@
 from django.db import connections
-from typing import Optional, Callable, Any, Union, List, Tuple, Dict
+from typing import Optional, Callable, Any, Union, List, Tuple, Dict,Literal,Sequence
 
 
-def execute_sql(sql: str, *, args: Optional[list] = None, many: bool = True,
-                dbname: str = 'default', keep: str = "dict", action='r',
+def execute_sql(sql: str, *, args: Optional[Sequence] = None, many: bool = True,
+                dbname: str = 'default', keep: Literal['dict', 'tuple'] = "dict",
+                action: Literal['r', 'cud'] = 'r',
                 func: Callable[[dict], Any] = lambda d: d
-                ) -> Union[
-                           None,
+                ) -> Union[None,
                            List[Any], Tuple[List[str], List[tuple]],
-                           Dict[str, Any], Tuple[List[str], tuple]
-                          ]:
+                           Dict[str, Any], Tuple[List[str], tuple]]:
     """
     :param func: 针对每条dict需要做进一步操作 减少多次循环
     :param sql: sql 语句
@@ -42,5 +41,6 @@ def execute_sql(sql: str, *, args: Optional[list] = None, many: bool = True,
                 return dict(zip(columns, cursor.fetchone()))
             else:
                 return columns, cursor.fetchone()
+
 
 
