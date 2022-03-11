@@ -303,7 +303,7 @@ def zip_files(zipname: str, dir: str = None, file_names: List[str] = None):
         file_p = dir / file
         if not file_p.is_file():
             raise ValueError(f'{str(file_p)} 并不是一个文件')
-        archive.write(file_p)
+        archive.write(file_p,arcname=file) # arcname解决不需要保存文件所在的原始路径
     archive.close()
     temp.seek(0)
     return file_response(temp, filename=zipname, ext='zip')
