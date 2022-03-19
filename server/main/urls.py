@@ -5,8 +5,11 @@ from django.urls import path
 from django.conf import settings
 from django.contrib import admin
 
+# from django.views.generic import TemplateView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+#     path('', TemplateView.as_view(template_name='index.html')) # 有时候不需要启动前端 直接启动django就运行前端打包好的代码 需要这个
 ]
 
 app_urls = getattr(settings,'APPS', [])
