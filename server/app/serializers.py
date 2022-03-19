@@ -79,7 +79,7 @@ class UserinfoSerializer(serializers.Serializer):  # 定义序列化类
 
 
 # 二 参数验证 反序列化 dict - 模型
-class LoginSerializer(serializers.Serializer):
+class RegisterSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=9,
         min_length=3,
