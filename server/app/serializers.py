@@ -110,8 +110,8 @@ class RegisterSerializer(serializers.Serializer):
         # 注意，users在这里是放在上下文中的request，而不是直接的request 在序列化的时候 需要加入comtext = request 否则拿不到request
         # 例如 serializer = LoginSerializer(data=request.data, context={'request':request})
         request = self.context['request']  # 有时候需要request对象中的属性 例如 user=request.user
-        passwrod = make_password(validated_data.get('password'))
-        instance = User.objects.create(username=validated_data.get('username'),passwrod=passwrod)
+        password = make_password(validated_data.get('password'))
+        instance = User.objects.create(username=validated_data.get('username'),password=password)
         return instance
 
     def update(self, instance, validated_data):  # 更新数据
