@@ -178,7 +178,7 @@ class LoginView(APIView):
     def post(self, request, *args, **kwargs):
 
         username = request.data.get('username')
-        password = request.data.get('passowrd')
+        password = request.data.get('password')
 
         try:
             user = User.objects.get(username=username)
