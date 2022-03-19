@@ -98,7 +98,7 @@ class RegisterSerializer(serializers.Serializer):
 
     def validate(self, data):  ## data是传进来的参数 里面获取上面定义好的字段进行字段之间的验证，或者生成只读字段
         # 传进来什么参数，就返回什么参数，一般情况下用attrs
-        if data['confirmpassword'] > data['password']:
+        if data['confirmpassword'] != data['password']:
             raise serializers.ValidationError("password must be equal")
 
         data['random_no'] = 'fsaifdsfiasdjfasifjsaf'  ##生成只读字段记录
