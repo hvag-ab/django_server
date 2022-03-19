@@ -173,6 +173,22 @@ class Retrive(generics.GenericAPIView):
 
 # #############################################################################################################
 
+class LoginView(APIView):
+
+    def post(self, request, *args, **kwargs):
+
+        username = request.data.get('username')
+        password = request.data.get('passowrd')
+
+        try:
+            user = User.objects.get(username=username)
+        except:
+            return JsResponse(code=False, msg="该用户不存在")
+        if not user.check_password(password):
+            return JsResponse(code=False, msg="密码错误")
+        token = user2token(user)
+        return JsResponse(data=token)
+
 # # 文件图片 视图
 class UploadFileView(generics.CreateAPIView):
     queryset = MyFile.objects.all()
