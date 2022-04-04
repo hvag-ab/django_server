@@ -23,7 +23,6 @@ for app_name in app_urls:
 
 
 if settings.DEBUG:
-    import debug_toolbar
     from django.conf.urls.static import serve
 
     try:
