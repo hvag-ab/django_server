@@ -12,11 +12,11 @@ from rest_framework import status
 # from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from util.file import ModelToExcel
+from util.file import DataToExcel
 from util.version import APIVersioning
 from .filter import ClothesFilter, ColorsFilter
-from .models import Clothes, Colors, MyFile
-from .serializers import UserinfoSerializer, LoginSerializer, ClothesSerializer, ColorsSerializer, ListImgSerializer, \
+from .models import Clothes, Colors
+from .serializers import UserinfoSerializer, RegisterSerializer, ClothesSerializer, ColorsSerializer, ListImgSerializer, \
     MyFileSerializer, ExcelSerializer
 from util.response import JsResponse
 from util.paginations import CustomPagination
@@ -27,14 +27,10 @@ from util.authentication import Authentication
 # query参数获取 request.query_params
 # form json参数获取 request.data
 # url参数获取 self.kwargs
-
 # no 序列化 因序列化后响应速度响应会变慢所以在一些对响应速度要求很高的请求上不使用序列化
-class NonSerialize(APIView):
-    def get(self, request, *args, **kwargs):
-        data = User.objects.values('id', 'username', 'email')
-        return JsResponse(data=data, code=True)
 
 
+# api展示
 class API(APIView):
     """
     用到那种方式请求 就重写那种方式
@@ -43,12 +39,12 @@ class API(APIView):
     def get(self, request, *args, **kwargs):
         data = request.query_params
         users = User.objects.all()
-        serializer = UserinfoSerializer(users, many=True, context={'request': request})
+        serializer = UserinfoSerializer(users, many=True)
         return JsResponse(data=serializer.data, code=True)
 
     def post(self, request, *args, **kwargs):
         data = request.data
-        serializer = LoginSerializer(data=data, context={'request': request})
+        serializer = RegisterSerializer(data=data, context={'request': request})
         if serializer.is_valid():
             instance = serializer.save()
             # 返回的是对象实例 可以用于后续操作
@@ -58,17 +54,17 @@ class API(APIView):
             print(serializer.errors)  # 打印验证错误
             return JsResponse(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST, code=False)
 
-    def put(self, request, *args, **kwargs):
+    def put(self, request, *args, **kwargs): # 全部改
         id = request.data.get('id')
         user = User.objects.get(id=id)
-        serializer = UserinfoSerializer(user, data=request.data, partial=True)
+        serializer = UserinfoSerializer(user, data=request.data, partial=False)
         if serializer.is_valid():
             serializer.save()
             return JsResponse(serializer.data)
         return JsResponse(msg=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     
-    def patch(self, request, *args, **kwargs):
+    def patch(self, request, *args, **kwargs): # 只改一部分
         id = request.data.get('id')
         user = User.objects.get(id=id)
         serializer = UserinfoSerializer(user, data=request.data, partial=True)
@@ -81,6 +77,44 @@ class API(APIView):
         id = request.data.get('id')
         deleted, _rows_count = User.objects.filter(id=id).delete()
         return JsResponse(status=status.HTTP_204_NO_CONTENT, data={'rows': _rows_count})
+
+
+from util.authentication import user2token
+class UserInfoView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        return JsResponse(data={'id':user.id, 'username':'username'})
+
+class LoginView(APIView):
+
+    def post(self, request, *args, **kwargs):
+
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        try:
+            user = User.objects.get(username=username)
+        except:
+            return JsResponse(code=False, msg="该用户不存在")
+        if not user.check_password(password):
+            return JsResponse(code=False, msg="密码错误")
+        token = user2token(user)
+        return JsResponse(data=token)
+
+class RegisterView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        serializer = RegisterSerializer(data=data, context={'request': request})
+        if serializer.is_valid():
+            instance = serializer.save()
+            # 返回的是对象实例 可以用于后续操作
+            return JsResponse(data=serializer.data, status=status.HTTP_201_CREATED, code=True)
+        else:
+            print(serializer.error_messages)
+            print(serializer.errors)  # 打印验证错误
+            return JsResponse(msg=serializer.errors, code=False)
 
 
 class CreateAPI(generics.CreateAPIView):  # 你也可以使用ListCreateAPIView
@@ -172,22 +206,6 @@ class Retrive(generics.GenericAPIView):
 
 
 # #############################################################################################################
-
-class LoginView(APIView):
-
-    def post(self, request, *args, **kwargs):
-
-        username = request.data.get('username')
-        password = request.data.get('password')
-
-        try:
-            user = User.objects.get(username=username)
-        except:
-            return JsResponse(code=False, msg="该用户不存在")
-        if not user.check_password(password):
-            return JsResponse(code=False, msg="密码错误")
-        token = user2token(user)
-        return JsResponse(data=token)
 
 # # 文件图片 视图
 class UploadFileView(generics.CreateAPIView):
