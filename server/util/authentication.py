@@ -22,13 +22,20 @@ class Authentication(BaseAuthentication):
 
 
 # jwt 认证
-def user2token(user):
+from rest_framework import exceptions
+from rest_framework_jwt.authentication import JSONWebTokenAuthentication
+from typing import Tuple,Optional
 
-    jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
-    jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
-    payload = jwt_payload_handler(user)
-    token = jwt_encode_handler(payload)
-    return api_settings.JWT_AUTH_HEADER_PREFIX + ' ' + token
+
+class JWTAuthentication(JSONWebTokenAuthentication):
+
+    def authenticate(self, request):
+
+        result:Optional[Tuple['user','jwt_value']] = super().authenticate(request)
+        if result is None:
+            raise exceptions.AuthenticationFailed(detail = '用户登陆才能访问')
+        else:
+            return result
 
 """
 刷新Token
@@ -57,7 +64,8 @@ urlpatterns += [
 需要全局配置 才能生效
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        #'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'util.authentication.JWTAuthentication',
     ),
 }
 
