@@ -79,7 +79,7 @@ class API(APIView):
         return JsResponse(status=status.HTTP_204_NO_CONTENT, data={'rows': _rows_count})
 
 
-from util.authentication import user2token
+from rest_framework_jwt.settings import api_settings
 class UserInfoView(APIView):
 
     def get(self, request, *args, **kwargs):
@@ -99,7 +99,11 @@ class LoginView(APIView):
             return JsResponse(code=False, msg="该用户不存在")
         if not user.check_password(password):
             return JsResponse(code=False, msg="密码错误")
-        token = user2token(user)
+        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+        payload = jwt_payload_handler(user)
+        token = jwt_encode_handler(payload)
+        token = api_settings.JWT_AUTH_HEADER_PREFIX + ' ' + token
         return JsResponse(data=token)
 
 class RegisterView(APIView):
