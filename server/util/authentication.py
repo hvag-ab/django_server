@@ -28,18 +28,7 @@ def user2token(user):
     jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
     payload = jwt_payload_handler(user)
     token = jwt_encode_handler(payload)
-    return token
-
-# # JWT SET
-# import datetime
-#
-# JWT_AUTH = {
-#     'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=300),
-#      #是否开启允许Token刷新服务，及限制Token刷新间隔时间，从原始Token获取开始计算
-#     'JWT_ALLOW_REFRESH': False,
-#     'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7),
-#     'JWT_AUTH_HEADER_PREFIX': 'JWT',
-# }
+    return api_settings.JWT_AUTH_HEADER_PREFIX + ' ' + token
 
 """
 刷新Token
@@ -64,4 +53,12 @@ urlpatterns += [
     url(r'^api-token-verify/', verify_jwt_token)
 ]
 将Token传递给验证API，如果令牌有效，则返回令牌，返回状态码为200。否则，它将返回400 Bad Request以及识别令牌无效的错误。
+
+需要全局配置 才能生效
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+    ),
+}
+
 """
