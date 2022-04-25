@@ -47,7 +47,7 @@ celery -A celery_tasks.celery_main beat --loglevel INFO
 windows系统启动: celery==4.4  django-celery-results=1.8
 
 pip install gevent 
-celery -A celery_tasks.celery_main worker.celery_main -l info -P gevent
+celery -A celery_tasks.celery_main worker -l info -P gevent
 
 celery beat 启动
 celery -A celery_tasks.celery_main beat -l info -P gevent
