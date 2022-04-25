@@ -160,7 +160,7 @@ celery -A celery_tasks.celery_main worker -l debug -c 4 -Q default,task_heavy
 
 并发数应保持接近CPU核心数。如果服务器具有4个核心CPU，则最大并发数应为4。当然，更大的数字将起作用，但效率较低。
 
-
+参考 https://www.jianshu.com/p/b3d2c5871bec
 """
 
 
