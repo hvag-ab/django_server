@@ -70,6 +70,10 @@ DISABLE_RATE_LIMITS = True
 # 规定完成任务的时间
 TASK_TIME_LIMIT = 15 * 60  # 在15分钟内完成任务，否则执行该任务的worker将被杀死，任务移交给父进程
 
+# TIMEZONE = 'Asia/Beijing'
+# 是否启用UTC时间
+ENABLE_UTC = True
+
 # 设置默认的队列名称，如果一个消息不符合其他的队列就会放在默认队列里面，如果什么都不设置的话，
 # 数据都会发送到默认的队列中
 DEFAULT_QUEUE = "default"
