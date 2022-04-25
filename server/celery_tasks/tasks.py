@@ -118,4 +118,14 @@ def store_page_info(info, url):
  def create_article(request):
      article = Article.objects.create()
      on_commit(lambda: expand_abbreviations.delay(article.pk))
+     
+任务延迟执行
+my_task.apply_async(countdown=10) # 以秒表示的延迟时间
+enable_utc设置为False并且定义了时区时不起作用
+
+预计到达时间
+第二种方法是使用eta参数，它需要执行的确切日期和时间。与本机datetime对象，日期为String或Pendulum实例完美配合。
+my_task.apply_async(eta=datetime.now(pytz.timezone("Europe/Warsaw"))
+my_task.apply_async(eta="2018-02-19 13:41:14+01:00")
+my_task.apply_async(eta=pendulum.now("Europe/Warsaw"))
 """
