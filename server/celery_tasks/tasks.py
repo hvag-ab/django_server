@@ -128,4 +128,32 @@ enable_utc设置为False并且定义了时区时不起作用
 my_task.apply_async(eta=datetime.now(pytz.timezone("Europe/Warsaw"))
 my_task.apply_async(eta="2018-02-19 13:41:14+01:00")
 my_task.apply_async(eta=pendulum.now("Europe/Warsaw"))
+
+apply_async 参数
+ countdown : 设置该任务等待一段时间再执行，单位为s；
+# eta : 定义任务的开始时间；eta=time.time()+10;
+# expires : 设置任务时间，任务在过期时间后还没有执行则被丢弃；
+# retry : 如果任务失败后, 是否重试;使用true或false，默认为true
+# shadow：重新指定任务的名字str，覆盖其在日志中使用的任务名称；
+# retry_policy : 重试策略.
+#   max_retries : 最大重试次数, 默认为 3 次.
+#   interval_start : 重试等待的时间间隔秒数, 默认为 0 , 表示直接重试不等待.
+#   interval_step : 每次重试让重试间隔增加的秒数, 可以是数字或浮点数, 默认为 0.2
+#   interval_max : 重试间隔最大的秒数, 即 通过 interval_step 增大到多少秒之后, 就不在增加了, 可以是数字或者浮点数, 默认为 0.2 .
+# routing_key:自定义路由键；
+# queue：指定发送到哪个队列；
+# exchange：指定发送到哪个交换机；
+# priority：任务队列的优先级，0-9之间；
+# serializer：任务序列化方法；通常不设置；
+# compression：压缩方案，通常有zlib, bzip2
+# headers：为任务添加额外的消息；
+# link：任务成功执行后的回调方法；是一个signature对象；可以用作关联任务
+ 
+task.apply_async ( ( 2 , 2 ) ,
+     compression = 'zlib' ,
+     serialize = 'json' ,
+     queue = 'priority.high' ,
+     routing_key = 'web.add' ,
+     priority = 0 ,
+     exchange = 'web_exchange' )
 """
