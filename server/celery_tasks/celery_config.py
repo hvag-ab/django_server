@@ -70,7 +70,7 @@ TASK_TIME_LIMIT = 15 * 60  # 在15分钟内完成任务，否则执行该任务�
 
 TIMEZONE = settings.TIME_ZONE
 # 是否启用UTC时间  默认为True
-ENABLE_UTC = False
+enable_utc = False
 
 # 队列设置
 """
