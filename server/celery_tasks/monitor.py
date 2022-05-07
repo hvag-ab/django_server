@@ -64,6 +64,10 @@ class TaskMonitor(celery.Task):
     def on_retry(self, exc, task_id, args, kwargs, einfo):
         """retry callback"""
         logger.info('task id:{} , arg:{} , retry !  einfo: {}'.format(task_id, args, exc))
+    
+    @classmethod
+    def on_bound(cls,app):
+        print("celery 启动的时候执行这个钩子 可用于清除celery意外中断后造成的脏数据")
 
 
 @celery_app.task(base=TaskMonitor, bind=True, name='post_file')
