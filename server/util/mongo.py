@@ -70,9 +70,9 @@ class MongoConnection:
         result = self.collection.delete_many(condition)
         return result.deleted_count
 
-    def find_or_create(self, condition: Union[dict, Dict[str, Dict[str, Any]]],
+    def get_or_create(self, condition: Union[dict, Dict[str, Dict[str, Any]]],
                        data: dict) -> Tuple[bool, dict]:
-        result = self.collection.find(condition)
+        result = self.collection.find_one(condition)
         if not result:
             self.create(data)
             return False, result
