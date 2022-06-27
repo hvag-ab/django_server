@@ -155,12 +155,20 @@ class MyFile(models.Model):
     #所以可以用uoload_to来指定文件存放的前缀路径
 
 admin后台点击删除的时候 不能把文件删除 需要添加一下代码
-from django.db.models.signals import pre_delete
+from django.db.models.signals import pre_delete,pre_save
 from django.dispatch.dispatcher import receiver
-@receiver(pre_delete, sender=MyFile)
+@receiver(pre_delete, sender=RBTemplate)
 def mymodel_delete(sender, instance, **kwargs):
   # Pass false so FileField doesn't save the model.
-  instance.imag_url.delete(False)
+  instance.file.delete(False)
+
+@receiver(pre_save, sender=RBTemplate) # 在模型保存前 
+def mymodel_delete(sender, instance, **kwargs):
+  # Pass false so FileField doesn't save the model.
+  if instance.pk: # 存在pk 就是修改操作  不存在就是创建操作
+    new_file = instance.file  # 获取修改后的文件
+    ori_instance = RBTemplate.objects.get(pk=instance.pk) # 删除修改前的文件
+    ori_instance.file.delete(False)
 
 增
 files = request.FILES.get('files')
@@ -168,6 +176,7 @@ MyFile.objects.create(file=files)
 删
 Myfile_data = MyFile.objects.filter(id=id).first()
 Myfile_data.file.delete()
+Myfile_data.delete()
 改
 Myfile_data = MyFile.objects.filter(id=id).first()
 Myfile_data.file.delete()
