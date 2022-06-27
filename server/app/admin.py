@@ -188,4 +188,5 @@ def export_as_excel(self, request, queryset):
             data = [f'{getattr(obj, field)}' for field in field_names]  # 将模型属性值的文本格式组成列表
         row = ws.append(data)  # 写入模型属性值
     wb.save(response)  # 将数据存入响应内容
+    wb.close()
     return response
