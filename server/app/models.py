@@ -149,7 +149,7 @@ class TimeStampFileName:
 """
 class MyFile(models.Model):
   
-    image  = models.ImageField(upload_to='media/images/%Y/%m/%d', null=False, blank=False, verbose_name='图片url')
+    image  = models.ImageField(upload_to='media/images/%Y/%m/%d', null=False, blank=False, verbose_name='图片url') # 默认新增图片的时候会在文件名后面添加token后缀防止覆盖
     file = models.FileField(upload_to=TimeStampFileName('media/'), null=False, blank=False, verbose_name='文件url')
     #实际的路径就是 MEDIA_ROOT/{upload_to}/filename
     #所以可以用uoload_to来指定文件存放的前缀路径
