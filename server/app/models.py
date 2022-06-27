@@ -148,11 +148,32 @@ class TimeStampFileName:
 #文件操作
 """
 class MyFile(models.Model):
-
-    image_url = models.ImageField(upload_to='media/images/%Y/%m/%d', null=False, blank=False, verbose_name='图片url')
-    file_url = models.FileField(upload_to=TimeStampFileName('media/'), null=False, blank=False, verbose_name='文件url')
+  
+    image  = models.ImageField(upload_to='media/images/%Y/%m/%d', null=False, blank=False, verbose_name='图片url')
+    file = models.FileField(upload_to=TimeStampFileName('media/'), null=False, blank=False, verbose_name='文件url')
     #实际的路径就是 MEDIA_ROOT/{upload_to}/filename
     #所以可以用uoload_to来指定文件存放的前缀路径
+
+admin后台点击删除的时候 不能把文件删除 需要添加一下代码
+from django.db.models.signals import pre_delete
+from django.dispatch.dispatcher import receiver
+@receiver(pre_delete, sender=MyFile)
+def mymodel_delete(sender, instance, **kwargs):
+  # Pass false so FileField doesn't save the model.
+  instance.imag_url.delete(False)
+
+增
+files = request.FILES.get('files')
+MyFile.objects.create(file=files)
+删
+Myfile_data = MyFile.objects.filter(id=id).first()
+Myfile_data.file.delete()
+改
+Myfile_data = MyFile.objects.filter(id=id).first()
+Myfile_data.file.delete()
+Myfile_data.file = files
+Myfile_data.save()
+
 """
 # 枚举
 class EnumModel(models.Model):
