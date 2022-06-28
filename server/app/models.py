@@ -166,7 +166,6 @@ def mymodel_delete(sender, instance, **kwargs):
 def mymodel_delete(sender, instance, **kwargs):
   # Pass false so FileField doesn't save the model.
   if instance.pk: # 存在pk 就是修改操作  不存在就是创建操作
-  if instance.pk:
     new_file = instance.file
     ori_instance = RBTemplate.objects.get(pk=instance.pk)
     ori_file = ori_instance.file
