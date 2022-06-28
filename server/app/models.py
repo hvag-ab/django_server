@@ -166,9 +166,12 @@ def mymodel_delete(sender, instance, **kwargs):
 def mymodel_delete(sender, instance, **kwargs):
   # Pass false so FileField doesn't save the model.
   if instance.pk: # 存在pk 就是修改操作  不存在就是创建操作
-    new_file = instance.file  # 获取修改后的文件
-    ori_instance = RBTemplate.objects.get(pk=instance.pk) # 删除修改前的文件
-    ori_instance.file.delete(False)
+  if instance.pk:
+    new_file = instance.file
+    ori_instance = RBTemplate.objects.get(pk=instance.pk)
+    ori_file = ori_instance.file
+    if new_file.size != ori_file.size:#通过文件大小判断用户是否更新文件 否则没更新也会删除 bug就是如果正好遇到文件大小相等 就不能替换
+        ori_instance.file.delete(False)
 
 增
 files = request.FILES.get('files')
