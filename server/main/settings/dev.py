@@ -8,6 +8,9 @@ ALLOWED_HOSTS = [
     '127.0.0.1','localhost'
 ]
 
+REDIS_URI = f"redis://{SECRETS['redis']['host']}:{SECRETS['redis']['port']}"
+MONGO_URI = 'mongodb://%s:%s' % (SECRETS['redis']['host'], SECRETS['redis']['port'])
+
 DATABASES = {
     'default': {
         # 'ENGINE': 'django.db.backends.mysql',
