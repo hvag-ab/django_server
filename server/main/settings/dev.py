@@ -8,20 +8,14 @@ ALLOWED_HOSTS = [
     '127.0.0.1','localhost'
 ]
 
-env = 'dev'
-
-REDIS = f"redis://{SECRETS[env]['redis']['host']}:{SECRETS[env]['redis']['port']}"
-MONGO = 'mongodb://%s:%s@%s:%s/%s' % (SECRETS[env]['mongo']['user'], SECRETS[env]['mongo']['password'], SECRETS[env]['mongo']['host'], SECRETS[env]['mongo']['port'], SECRETS[env]['mongo']['auth'])
-
-
 DATABASES = {
     'default': {
         # 'ENGINE': 'django.db.backends.mysql',
-        # 'NAME': SECRETS[env]['db']['name'],
-        # 'HOST': SECRETS[env]['db']['host'],
-        # 'PORT': SECRETS[env]['db']['port'],
-        # 'USER': SECRETS[env]['db']['user'],
-        # 'PASSWORD': SECRETS[env]['db']['password']
+        # 'NAME': SECRETS['db']['name'],
+        # 'HOST': SECRETS['db']['host'],
+        # 'PORT': SECRETS['db']['port'],
+        # 'USER': SECRETS['db']['user'],
+        # 'PASSWORD': SECRETS['db']['password']
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': str(BASE_DIR/'app.db'),
     },
@@ -125,21 +119,21 @@ DATABASES = {
     },
     'mysql': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': SECRETS[env]['db']['name'],
-        'HOST': SECRETS[env]['db']['host'],
-        'PORT': SECRETS[env]['db']['port'],
-        'USER': SECRETS[env]['db']['user'],
-        'PASSWORD': SECRETS[env]['db']['password']
+        'NAME': SECRETS['db']['name'],
+        'HOST': SECRETS[['db']['host'],
+        'PORT': SECRETS['db']['port'],
+        'USER': SECRETS['db']['user'],
+        'PASSWORD': SECRETS['db']['password']
         # 'CONN_MAX_AGE': 0
         # CONN_MAX_AGE的时间怎么设置主要取决于数据库对空闲连接的管理，比如你的MySQL设置了空闲1分钟就关闭连接 默认为0，不使用 一般用于数据库不在本地,远程连接数据库时间过长
     },
     'postgres': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': SECRETS['docker']['db']['name'],
-        'HOST': SECRETS['docker']['db']['host'],
-        'PORT': SECRETS['docker']['db']['port'],
-        'USER': SECRETS['docker']['db']['user'],
-        'PASSWORD': SECRETS['docker']['db']['password']
+        'NAME': SECRETS['db']['name'],
+        'HOST': SECRETS['db']['host'],
+        'PORT': SECRETS['db']['port'],
+        'USER': SECRETS['db']['user'],
+        'PASSWORD': SECRETS['db']['password']
     },
     'oracle': { # service_name 连接
         'ENGINE': 'django.db.backends.oracle',
