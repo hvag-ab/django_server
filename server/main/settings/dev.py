@@ -9,7 +9,7 @@ ALLOWED_HOSTS = [
 ]
 
 REDIS_URI = f"redis://{SECRETS['redis']['host']}:{SECRETS['redis']['port']}"
-MONGO_URI = 'mongodb://%s:%s' % (SECRETS['redis']['host'], SECRETS['redis']['port'])
+MONGO_URI = 'mongodb://%s:%s' % (SECRETS['mongo']['host'], SECRETS['mongo']['port'])
 
 DATABASES = {
     'default': {
