@@ -3,7 +3,7 @@ from pymongo import MongoClient, cursor
 from bson.objectid import ObjectId
 from typing import Optional, Dict, List, Any, Union, Tuple
 
-mongo_uri = settings.MONGO
+mongo_uri = settings.MONGO_URI
 
 
 class MongoConnection:
