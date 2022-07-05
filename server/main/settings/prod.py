@@ -16,7 +16,7 @@ ALLOWED_HOSTS = [
 
 
 REDIS_URI = f"redis://:{SECRETS['redis']['password']}@{SECRETS['redis']['host']}:{SECRETS['redis']['port']}"
-REDIS_URI = 'mongodb://%s:%s@%s:%s/%s' % (SECRETS['mongo']['user'], SECRETS['mongo']['password'], SECRETS['mongo']['host'], SECRETS['mongo']['port'], SECRETS['mongo']['auth'])
+MONGO_URI = 'mongodb://%s:%s@%s:%s/%s' % (SECRETS['mongo']['user'], SECRETS['mongo']['password'], SECRETS['mongo']['host'], SECRETS['mongo']['port'], SECRETS['mongo']['auth'])
 
 
 DATABASES = {
@@ -66,7 +66,7 @@ CACHES = {
 # 日志写入mongo
 LOGGING["handlers"]["mongo"] = {
             'class': 'util.mongo_handler.MongoHandler',
-            'host': REDIS_URI,  # 通过uri方式配置
+            'host': MONGO_URI,  # 通过uri方式配置
             'database_name': 'mongo_logs',
             'collection': 'logs',
             'level': 'INFO',
