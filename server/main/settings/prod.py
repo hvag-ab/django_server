@@ -24,11 +24,11 @@ MONGO = 'mongodb://%s:%s@%s:%s/%s' % (SECRETS[env]['mongo']['user'], SECRETS[env
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': SECRETS[env]['db']['name'],
-        'HOST': SECRETS[env]['db']['host'],
-        'PORT': SECRETS[env]['db']['port'],
-        'USER': SECRETS[env]['db']['user'],
-        'PASSWORD': SECRETS[env]['db']['password']
+        'NAME': SECRETS['db']['name'],
+        'HOST': SECRETS['db']['host'],
+        'PORT': SECRETS['db']['port'],
+        'USER': SECRETS['db']['user'],
+        'PASSWORD': SECRETS['db']['password']
     },
 }
 
