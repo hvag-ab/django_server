@@ -6,8 +6,8 @@ ALLOWED_HOSTS = [
     '*'
 ]
 
-REDIS_URI = f"redis://:{SECRETS['redis']['password']}@{SECRETS['redis']['host']}:{SECRETS['redis']['port']}"
-REDIS_URI = 'mongodb://%s:%s@%s:%s/%s' % (SECRETS['mongo']['user'], SECRETS['mongo']['password'], SECRETS['mongo']['host'], SECRETS['mongo']['port'], SECRETS['mongo']['auth'])
+REDIS_URI = f"redis://{SECRETS['redis']['host']}:{SECRETS['redis']['port']}"
+MONGO_URI = 'mongodb://%s:%s' % (SECRETS['mongo']['host'], SECRETS['mongo']['port'])
 
 DATABASES = {
     'default': {
