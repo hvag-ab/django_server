@@ -42,7 +42,7 @@ REST_FRAMEWORK = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"{REDIS}/1", #这里直接使用redis别名作为host ip地址
+        "LOCATION": f"{REDIS_URI}/1", #这里直接使用redis别名作为host ip地址
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "CONNECTION_POOL_KWARGS": {"max_connections": 100}
@@ -52,7 +52,7 @@ CACHES = {
     },
     "account": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"{REDIS}/2",  # 账户相关的缓存放置2号表
+        "LOCATION": f"{REDIS_URI}/2",  # 账户相关的缓存放置2号表
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "CONNECTION_POOL_KWARGS": {"max_connections": 100}
@@ -66,7 +66,7 @@ CACHES = {
 # 日志写入mongo
 LOGGING["handlers"]["mongo"] = {
             'class': 'util.mongo_handler.MongoHandler',
-            'host': MONGO,  # 通过uri方式配置
+            'host': REDIS_URI,  # 通过uri方式配置
             'database_name': 'mongo_logs',
             'collection': 'logs',
             'level': 'INFO',
