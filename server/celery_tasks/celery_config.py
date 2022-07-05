@@ -3,7 +3,7 @@ from django.conf import settings
 from kombu import Exchange, Queue
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "main.settings.dev")
 
-REDIS = settings.REDIS
+REDIS = settings.REDIS_URI
 
 # 设置代理人broker
 broker_url =  f"{REDIS}/7"
