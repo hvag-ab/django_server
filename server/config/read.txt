@@ -1,8 +1,8 @@
 1 生产环境 工作环境 使用不同的secrets 防止密码 token泄露丢失
-2 生成两个secrets_key  一个dev环境使用 一个prod 环境使用  避免使用同一个造成信息泄露 
+2 生成两个secret_key  一个dev环境使用 一个prod 环境使用  避免使用同一个造成信息泄露 
 3 替换secrets.json 中的secrets_key
 
-secrets_key 生成方法
+secret_key 生成方法
 
 1 export SECRET_KEY="xxxxxxxx"
 2 # 引号中的内容xxxxxxxx可以用Django原先自带的，也可以自己单独再另外生成。
