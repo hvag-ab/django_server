@@ -16,7 +16,7 @@ def file_response(buffer: Buffer,
                   filename: str,
                   ext: str,
                   block_size: int = 4096) -> HttpResponse:
-    if ext == 'xlsx':
+    if 'xls' in ext: # xlsx xls xlsm
         content_type = 'application/msexcel'
     elif ext == 'csv':
         content_type = 'text/csv'
