@@ -285,25 +285,27 @@ from django.conf import settings
 from pathlib import Path
 
 
-def zip_files(zipname: str, dir: str = None, file_names: List[str] = None):
+def zip_files(zipname: str, dirpath: Optional[Union[str,Path]] = None, exclude_filename: Optional[List[str]] = None):
     """
     :param zipname: zip文件名
-    :param dir: 压缩文件所在的文件夹
-    :param file_names: 文件名s
+    :param dirpath: 压缩文件所在的文件夹
+    :param exclude_filename: 需要排除的文件名
     :return:
     """
-    if dir is None:
-        dir = settings.MEDIA_ROOT
+    if dirpath is None:
+        dirpath = settings.MEDIA_ROOT
     else:
-        dir = Path(dir)
-
+        dirpath = Path(dirpath)
+    if exclude_filename is None:
+        exclude_filename = []
     temp = tempfile.NamedTemporaryFile()
     archive = zipfile.ZipFile(temp, 'w', zipfile.ZIP_DEFLATED)
-    for file in file_names:
-        file_p = dir / file
-        if not file_p.is_file():
-            raise ValueError(f'{str(file_p)} 并不是一个文件')
-        archive.write(file_p,arcname=file) # arcname解决不需要保存文件所在的原始路径
+    for file in dirpath.iterdir():
+        if file.is_dir():
+            raise ValueError(f'暂不支持压缩文件夹')
+        filename = file.name 
+        if filename not in exclude_filename:
+            archive.write(file,arcname=file.name)
     archive.close()
     temp.seek(0)
     return file_response(temp, filename=zipname, ext='zip')
