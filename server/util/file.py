@@ -7,16 +7,17 @@ from openpyxl.styles import Side, Border, colors, PatternFill, Alignment, Font
 from django.http import HttpResponse, StreamingHttpResponse
 from typing import List, Union, Optional, Callable, Any, IO, Sequence,Generator
 from io import StringIO
+from pathlib import Path
 
 DATA = Sequence[Union[dict,Sequence]]
-Buffer = Union[bytes, IO, Generator]
+Buffer = Union[bytes, IO, Generator,Path]
 
 
 def file_response(buffer: Buffer,
                   filename: str,
                   ext: str,
                   block_size: int = 4096) -> HttpResponse:
-    if 'xls' in ext: # xlsx xls xlsm
+    if ext == 'xlsx':
         content_type = 'application/msexcel'
     elif ext == 'csv':
         content_type = 'text/csv'
@@ -26,6 +27,8 @@ def file_response(buffer: Buffer,
         response = HttpResponse(content=buffer, content_type=content_type)
     else:
         try:
+            if isinstance(buffer,Path):
+                buffer = buffer.open(mode='rb')
             if hasattr(buffer, 'read'):
                 chunk = iter(lambda: buffer.read(block_size), b'')
             else:
@@ -282,7 +285,6 @@ class DataToCSV:
 
 
 from django.conf import settings
-from pathlib import Path
 
 
 def zip_files(zipname: str, dirpath: Optional[Union[str,Path]] = None, exclude_filename: Optional[List[str]] = None):
