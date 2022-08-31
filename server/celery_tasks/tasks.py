@@ -4,6 +4,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 import time
 from celery.utils.log import get_task_logger
+from celery import AsyncResult
 from celery_tasks.celery_main import app as celery_app # 导入创建好的celery应用  # 导入创建好的celery应用
 
 
@@ -66,6 +67,13 @@ try:
     print(value)
 except mul.OperationalError as exc: # 任务异常处理
     logger.exception('Sending task raised: %r', exc)
+    
+ 
+ # 通过id 获取状态
+res = AsyncResult(task_id)
+res.status
+# 强制取消任务
+res.revoke(task_id, terminate=True)
     
     
 组合任务:
