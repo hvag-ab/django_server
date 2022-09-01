@@ -72,7 +72,8 @@ except mul.OperationalError as exc: # 任务异常处理
  # 通过id 获取状态
 res = AsyncResult(task_id)
 res.status
-# 强制取消任务  注意强制取消后 是否需要捕获任务 如果需要捕获就只能使用 SIGUSR1  这个信号
+# 强制取消任务  注意强制取消后 是否需要捕获任务 如果需要捕获就只能使用 SIGUSR1  这个信号  抛出 from celery.exceptions import SoftTimeLimitExceeded 这个错误
+#  except SoftTimeLimitExceeded as e: xxx 做后续处理
 res.revoke(terminate=True,signal='SIGTERM')
 其中，SIGTERM就是默认的Signal，很粗暴；SIGQUIT则比它更粗暴。 至于不在上面的SIGKILL、SIGINT等，也不见得好多少。 如果想要让被终止的任务知道自己被终止，目前只能使用SIGUSR1。
 它会在任务正在执行的位置，抛出一个SoftTimeLimitExceeded。 因此，只需要在最外层用try ... except捕获这个异常，就可以进行一些后处理。 但是，由于它的现象和任务超时是类似的，因此需要自行区分。
