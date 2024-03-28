@@ -143,21 +143,19 @@ class UserInfoSerializer(serializers.ModelSerializer):
 
 # 三  上传下载序列化 图片 文件 等
 # 图片文件上传 验证
-class MyFileSerializer(serializers.ModelSerializer):
+class MyFileSerializer(serializers.Serializer):
     #
     image_url = serializers.ImageField(allow_empty_file=True,required=False)
     file_url = serializers.FileField(allow_empty_file=True, use_url=True)
 
-    class Meta:
-        model = MyFile
-        fields = ('image_url', 'file_url')
-
     def create(self, validated_data):
         file = validated_data.get('file_url')
+        image = validated_data.get('image')
         print(dir(file))
         print(file.size)
         print(file.name)
-        return super().create(validated_data)
+        File = MyFile.objects.create(file=file,image=image)
+        return File
 
 
 # 上传多张图片
