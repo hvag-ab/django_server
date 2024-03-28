@@ -23,9 +23,9 @@ class Command(BaseCommand):
     def run(cmd):
         subprocess.call(shlex.split(cmd))
         
- """
+"""
  仅适用于测试环境
  测试环境中 打开shell 然后 进入到manage.py 同级目录 
  输入 python manage.py celery  就启动了celery了 然后app下面的文件存在变动 就会自动重新celery
  
- """
+"""
