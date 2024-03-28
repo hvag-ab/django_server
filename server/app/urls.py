@@ -13,7 +13,6 @@ urlpatterns = [
     path('download_excel/', views.Download.as_view(),name="download_excel"),
 
     # 缓存
-    path('page_cache/',views.PageCacheView.as_view(),name='page_cache'),
     path('http_cache/',views.HttpCacheView.as_view(),name='http_cache'),
     # celery
     path('celery_add/',views.CeleryAdd.as_view(),name='celery_add'),
