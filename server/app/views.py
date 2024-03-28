@@ -2,11 +2,9 @@ from django.contrib.auth.models import User
 from django.utils.decorators import method_decorator
 from rest_framework import generics, filters
 from rest_framework.parsers import JSONParser, FormParser, FileUploadParser, MultiPartParser
-
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions
-
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework_jwt.settings import api_settings
@@ -19,6 +17,7 @@ from .serializers import UserInfoSerializer, RegisterSerializer, ClothesSerializ
     MyFileSerializer, ExcelSerializer
 from util.response import JsResponse
 from util.paginations import CustomPagination
+from util.base_model import BaseView
 
 
 
@@ -34,7 +33,6 @@ class API(APIView):
     """
     用到那种方式请求 就重写那种方式
     """
-
     def get(self, request, *args, **kwargs):
         data = request.query_params
         users = User.objects.all()
@@ -121,6 +119,14 @@ class RegisterView(APIView):
             print(serializer.error_messages)
             print(serializer.errors)  # 打印验证错误
             return JsResponse(msg=serializer.errors, code=False)
+
+
+class UserInfoView(BaseView):
+
+    def get(self, request, *args, **kwargs):
+        serializer = UserInfoSerializer(request.user, many=False)
+        return JsResponse(data=serializer.data, code=True)
+
 
 
 class DetailAPI(generics.RetrieveUpdateDestroyAPIView):  # 可以单独使用DestroyAPIView，RetrieveAPIView
