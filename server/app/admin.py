@@ -26,7 +26,7 @@ class ClothModelAdmin(ModelAdmin):
     #自定义显示字段 自定义显示字段名 不能 和 模型中的字段名一样
     def hvag(self, obj):
         return obj.color.colors
-    hvag..short_description = '衣服颜色' # 自定义字段取一个别名作为表头
+    hvag.short_description = '衣服颜色' # 自定义字段取一个别名作为表头
     hvag.empty_value_display = "默认为空时显示的值"
 
     # 2.定义列表页面，列可以进行点击进入编辑页面
