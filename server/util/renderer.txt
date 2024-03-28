@@ -25,7 +25,7 @@ class UJSONRenderer(BaseRenderer):
  """   
  REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
-        'drf_ujson.renderers.UJSONRenderer',
+        'yourpath.renderers.UJSONRenderer',
     ),
 }
 """
