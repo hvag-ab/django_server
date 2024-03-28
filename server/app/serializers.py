@@ -1,10 +1,13 @@
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
+from rest_framework_jwt.settings import api_settings
+from django.contrib.auth import authenticate
 
 from util.file import ExcelToData
 from .models import Colors, Clothes, MyFile
-from django.contrib.auth.models import User
+
+User = get_user_model()
 
 """
 序列化器 serializers.Field 的通用参数 
@@ -31,22 +34,12 @@ DecimalField(max_digits=6, decimal_places=4)
 
 # ModelSerializer这种尽量不用来做反序列化 模型里面常含有外键字段 外键字段需要排除exclude 否则容易报错
 # 一.序列化 模型 - json  
-# 1. 模型序列化   
-class ColorsSerializer(serializers.ModelSerializer):
-    clothes_set =  ClothesSerializer(many=True) #反向序列化 Clothes关联colors 写法 Clothes[.lower()]_set 也就是小写类名_set
-    favor = serializers.SerializerMethodField()  # 添加新的返回值
-
-    class Meta:
-        model = Colors
-        fields = '__all__'
-
-    def get_favor(self, obj):
-        return obj.colors + '__hvag'
+# 1. 模型序列化
 
 
 class ClothesSerializer(serializers.ModelSerializer):
     # 这里的外键包含OneToOneField ForeignKey  ManyToManyField
-    color = ColorsSerializer()  # 首先关联的模型序列化 #正向序列化 colors必须是Clothes属性
+    # color = ColorsSerializer()  # 首先关联的模型序列化 #正向序列化 colors必须是Clothes属性
     # 另一种 只序列化一个外键模型的字段 color是Clothes 外键字段 然后拿关联的模型的colors字段值
     colors = serializers.CharField(source='color.colors')
 
@@ -61,21 +54,16 @@ class ClothesSerializer(serializers.ModelSerializer):
         # depth = 1
 
 
-# 自定义序列化 res=UserinfoSerializer(instance=users,many=True) #instance接受queryset对象或者单个model对象，当有多条数据时候，使用many=True,单个对象many=False
-class UserinfoSerializer(serializers.Serializer):  # 定义序列化类
-    id = serializers.IntegerField()  # 定义需要提取的序列化字段,名称和model中定义的字段相同
-    username = serializers.CharField()
-    rl = serializers.SerializerMethodField()  # 多对多序列化方法一
+class ColorsSerializer(serializers.ModelSerializer):
+    clothes_set = ClothesSerializer(many=True) #反向序列化 Clothes关联colors 写法 Clothes[.lower()]_set 也就是小写类名_set
+    favor = serializers.SerializerMethodField()  # 添加新的返回值
 
-    def get_rl(self, obj):  # 名称固定：get_定义的字段名称
-        """
-        自定义序列化
-        :param obj:传递的model对象，这里已经封装好的
-        :return:
-        """
-        rl = 'hvag_' + obj.username # 获取所有的角色
+    class Meta:
+        model = Colors
+        fields = '__all__'
 
-        return {'rl':rl}  # 返回的结果一定是json可序列化的对象
+    def get_favor(self, obj):
+        return obj.colors + '__hvag'
 
 
 # 二 参数验证 反序列化 dict - 模型
@@ -86,22 +74,20 @@ class RegisterSerializer(serializers.Serializer):
         validators=[UniqueValidator(queryset=User.objects.all())])
     password = serializers.CharField(required=True)
     confirmpassword = serializers.CharField(required=True)
-    random_no = serializers.CharField(write_only=True,required=False)
 
     # 单独验证某个字段
     def validate_password(self, password):
         # 注意参数，self以及字段名
         # 注意函数名写法，validate_ + 字段名字
         if len(password) >= 11:
-            raise serializers.ValidationError("密码必须小于11岁")
+            raise serializers.ValidationError("密码必须小于11位")
         return password
 
-    def validate(self, data):  ## data是传进来的参数 里面获取上面定义好的字段进行字段之间的验证，或者生成只读字段
+    def validate(self, data):  ## data是传进来的参数 里面获取上面定义好的字段进行字段之间的验证
         # 传进来什么参数，就返回什么参数，一般情况下用attrs
         if data['confirmpassword'] != data['password']:
             raise serializers.ValidationError("password must be equal")
 
-        data['random_no'] = 'fsaifdsfiasdjfasifjsaf'  ##生成只读字段记录
         # del data['confirmpassword']
         return data
 
@@ -114,17 +100,45 @@ class RegisterSerializer(serializers.Serializer):
         instance = User.objects.create_user(username=validated_data.get('username'),password=validated_data.get('password'))
         return instance
 
-    def update(self, instance, validated_data):  # 更新数据
-        # 更新的特别之处在于你已经获取到了这个对象instance 例如
-        # serializer = LoginSerializer(data=request.data, instance=User.objects.get(username='hvag'), context={'request':request})
-        instance.colors = validated_data.get('colors', instance.name)
-        instance.save()
-        return instance
 
     def save(self):  # 无论update or create 最终都是要调用save方法完成操作,可以重写save方法完成自己的逻辑
         request = self.context.get('request')
         validated_data = self.validated_data
         # do something
+        return super().save()
+
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField(min_length=3)
+    password = serializers.CharField(required=True)
+    token = serializers.CharField(write_only=True,required=False) # 只读字段 传给前端 不写入表
+
+    def validate(self, data):  ## data是传进来的参数 里面获取上面定义好的字段进行字段之间的验证，或者生成只读字段
+        request = self.context['request']
+        user = authenticate(request, username=data.get('username'), password=data.get('password'))
+        if not user:
+            raise serializers.ValidationError("authenticate error")
+
+        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+        payload = jwt_payload_handler(user)
+        token = jwt_encode_handler(payload)
+        token = api_settings.JWT_AUTH_HEADER_PREFIX + ' ' + token
+        data['token'] = token  ##生成只读字段记录
+        return data
+
+
+class UserInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'email']
+
+    def update(self, instance, validated_data):  # 更新数据
+        # 更新的特别之处在于你已经获取到了这个对象instance 例如
+        # serializer = LoginSerializer(data=request.data, instance=User.objects.get(username='hvag'), context={'request':request})
+        instance.email = validated_data.get('email', instance.email)
+        instance.save()
+        return instance
 
 
 # 三  上传下载序列化 图片 文件 等
@@ -164,7 +178,7 @@ class ListImgSerializer(serializers.Serializer):
             image = MyFile.objects.create(image_url=image_url)
             ima = MyFileSerializer(image, context=self.context)
             images.append(ima.data['image_url'])
-        return {'view_imgs': images}  # 注意 这里的key一定是上面序列化的变量 因为这是序列化必须包含序列化定义的字段
+        return {'view_imgs': images}  # 注意 这里的key一定是上面序列化的变量 因为这是序列化必须包含序列化定义的字段 返回值是serializer.save()
 
 
 # 上传excel操作 序列化
