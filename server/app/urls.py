@@ -4,6 +4,10 @@ from . import views
 app_name= 'app' #方便reverse url获取  reverse(app:non) = path('non/'....
 
 urlpatterns = [
+    path('login/', views.LoginView.as_view(),name='login'),
+    path('register/', views.RegisterView.as_view(),name='register'),
+    path('user/', views.UserInfoView.as_view(),name='userinfo'),
+
     path('api/', views.API.as_view(),name='api'),
     path('detail/<int:pk>/', views.DetailAPI.as_view(),name="detail"),
     path('list/', views.ListView.as_view(),name="list"),
