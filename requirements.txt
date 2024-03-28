@@ -5,7 +5,7 @@ pillow
 djangorestframework
 bcrypt
 django-filter
-djangorestframework-jwt
+djangorestframework-simplejwt
 pymysql
 django-cors-headers
 gevent
