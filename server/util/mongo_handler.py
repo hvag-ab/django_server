@@ -116,8 +116,13 @@ class MongoHandler(logging.Handler):
         if self.reuse and _connection:
             self.connection = _connection
         else:
-            self.connection = MongoClient(host=self.host, port=self.port,
-                                          **kwargs)
+            if self.username is not None and self.password is not None:
+                self.connection = MongoClient(host=self.host, port=self.port, username=self.username,
+                                            password=self.password, **kwargs)
+
+            else:
+                self.connection = MongoClient(host=self.host, port=self.port,
+                                            **kwargs)
             try:
                 self.connection.is_primary
             except ServerSelectionTimeoutError:
@@ -127,10 +132,6 @@ class MongoHandler(logging.Handler):
             _connection = self.connection
 
         self.db = self.connection[self.database_name]
-        if self.username is not None and self.password is not None:
-            auth_db = self.connection[self.authentication_database_name]
-            self.authenticated = auth_db.authenticate(self.username,
-                                                      self.password)
 
         if self.capped:
             #
@@ -148,10 +149,8 @@ class MongoHandler(logging.Handler):
 
     def close(self):
         """
-        If authenticated, logging out and closing mongo database connection.
+        closing mongo database connection.
         """
-        if self.authenticated:
-            self.db.logout()
         if self.connection is not None:
             self.connection.close()
 
